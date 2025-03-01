@@ -13,6 +13,7 @@
 - [x] Xử lý các trường hợp API trả về dữ liệu không đúng định dạng
 - [x] Thêm xử lý cho trường hợp không có token xác thực
 - [x] Cải thiện hiển thị thông báo lỗi
+- [x] Thêm cột STT (số thứ tự) vào bảng danh sách tài khoản
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản

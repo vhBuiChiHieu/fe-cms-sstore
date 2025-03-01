@@ -278,6 +278,7 @@ const AccountsPage: React.FC = () => {
           <Table sx={{ minWidth: 650 }} aria-label="danh sách tài khoản">
             <TableHead>
               <TableRow>
+                <TableCell width="50px">STT</TableCell>
                 <TableCell>ID</TableCell>
                 <TableCell>Tên đăng nhập</TableCell>
                 <TableCell>Email</TableCell>
@@ -292,7 +293,7 @@ const AccountsPage: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={10} align="center" sx={{ py: 3 }}>
                     <CircularProgress />
                     <Typography variant="body2" sx={{ mt: 1 }}>
                       Đang tải dữ liệu...
@@ -301,14 +302,14 @@ const AccountsPage: React.FC = () => {
                 </TableRow>
               ) : !accounts || accounts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={10} align="center" sx={{ py: 3 }}>
                     <Typography variant="body1">
                       Không tìm thấy dữ liệu
                     </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                accounts.map((account) => {
+                accounts.map((account, index) => {
                   if (!account) {
                     console.error('Account item is null or undefined');
                     return null;
@@ -316,6 +317,7 @@ const AccountsPage: React.FC = () => {
                   
                   return (
                     <TableRow key={account.id || `row-${Math.random()}`} hover>
+                      <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                       <TableCell>{account.id || 'N/A'}</TableCell>
                       <TableCell>{account.username}</TableCell>
                       <TableCell>{account.email}</TableCell>
