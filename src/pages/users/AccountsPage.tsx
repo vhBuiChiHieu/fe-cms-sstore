@@ -9,20 +9,22 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
-  Chip,
-  IconButton,
   TextField,
-  InputAdornment,
   Button,
+  IconButton,
+  Chip,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent,
-  Grid,
+  InputAdornment,
+  CircularProgress,
   Tooltip,
-  CircularProgress
+  Snackbar,
+  Alert,
+  Grid,
+  SelectChangeEvent,
+  Stack
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -31,13 +33,13 @@ import {
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
   Add as AddIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  ArrowBackIosNew as ArrowBackIosNewIcon,
+  ArrowForwardIos as ArrowForwardIosIcon
 } from '@mui/icons-material';
 import { getAccounts, Account, AccountListParams } from '../../services/accountService';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import { TOKEN } from '../../utils/config';
 
 const AccountsPage: React.FC = () => {
@@ -125,7 +127,7 @@ const AccountsPage: React.FC = () => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (event: SelectChangeEvent) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -361,17 +363,63 @@ const AccountsPage: React.FC = () => {
           </Table>
         </TableContainer>
         
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={totalElements}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Số hàng mỗi trang:"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count} | Trang ${page + 1}`}
-        />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, px: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" component="div" sx={{ mr: 2 }}>
+              Số hàng mỗi trang:
+            </Typography>
+            <FormControl variant="outlined" size="small" sx={{ minWidth: 80 }}>
+              <Select
+                value={rowsPerPage.toString()}
+                onChange={handleChangeRowsPerPage}
+                displayEmpty
+              >
+                {[5, 10, 25].map((option) => (
+                  <MenuItem key={option} value={option.toString()}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+          
+          <Stack direction="row" spacing={1} alignItems="center">
+            <IconButton 
+              onClick={(e) => handleChangePage(e, page - 1)} 
+              disabled={page === 0}
+              size="small"
+            >
+              <ArrowBackIosNewIcon fontSize="small" />
+            </IconButton>
+            
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              minWidth: '32px',
+              height: '32px',
+              borderRadius: '16px',
+              bgcolor: 'primary.main',
+              color: 'white'
+            }}>
+              <Typography variant="body2">
+                {page + 1}
+              </Typography>
+            </Box>
+            
+            <IconButton 
+              onClick={(e) => handleChangePage(e, page + 1)} 
+              disabled={page >= Math.ceil(totalElements / rowsPerPage) - 1}
+              size="small"
+            >
+              <ArrowForwardIosIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+          
+          <Typography variant="body2">
+            {`${page * rowsPerPage + 1}-${Math.min((page + 1) * rowsPerPage, totalElements)} của ${totalElements}`}
+          </Typography>
+        </Box>
       </Paper>
       <Snackbar
         open={!!error}
