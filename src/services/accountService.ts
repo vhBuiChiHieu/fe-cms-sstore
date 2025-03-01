@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { BASE_URL, TOKEN } from '../utils/config';
 
 // API URL
-const BASE_URL = 'http://localhost:8080';
+// const BASE_URL = 'http://localhost:8080';
 
 export interface Account {
   id: string;
@@ -44,8 +45,7 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
         role: params.role
       },
       headers: {
-        // Thêm token xác thực nếu có
-        Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined
+        Authorization: `Bearer ${TOKEN}`
       }
     });
     
@@ -55,41 +55,34 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
     
     // Kiểm tra cấu trúc dữ liệu trả về từ API
     if (response.data && response.data.data) {
-      // Trường hợp API trả về { data: { content: [...] } }
-      if (response.data.data.content && Array.isArray(response.data.data.content)) {
-        console.log('API trả về cấu trúc data.data.content');
-        return response.data.data;
-      }
+      console.log('API trả về cấu trúc data:', response.data.data);
       
-      // Trường hợp API trả về { data: [...] }
-      if (Array.isArray(response.data.data)) {
-        console.log('API trả về cấu trúc data là mảng, bọc vào cấu trúc chuẩn');
+      // Chuyển đổi cấu trúc dữ liệu từ API sang định dạng chuẩn
+      const apiData = response.data.data;
+      
+      if (apiData.data && Array.isArray(apiData.data)) {
+        console.log('API trả về mảng data trong data.data');
+        
+        // Chuyển đổi dữ liệu từ API sang định dạng Account
+        const accounts = apiData.data.map((item: any) => ({
+          id: item.id.toString(),
+          username: item.mail.split('@')[0] || '',
+          email: item.mail || '',
+          fullName: item.mail.split('@')[0] || '',
+          role: item.roles && item.roles.length > 0 ? item.roles[0].name : 'USER',
+          status: item.status === 0 ? 'active' : 'inactive',
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        }));
+        
         return {
-          content: response.data.data,
-          totalElements: response.data.data.length,
-          totalPages: 1,
-          size: params.pageSize,
-          number: params.pageIndex - 1
+          content: accounts,
+          totalElements: apiData.totalItems || accounts.length,
+          totalPages: apiData.totalPages || 1,
+          size: apiData.pageSize || params.pageSize,
+          number: (apiData.pageIndex || params.pageIndex) - 1
         };
       }
-    }
-    
-    // Trường hợp API trả về { content: [...] }
-    if (response.data && response.data.content && Array.isArray(response.data.content)) {
-      console.log('API trả về cấu trúc content là mảng');
-      return response.data;
-    }
-    
-    // Trường hợp API trả về mảng trực tiếp
-    if (Array.isArray(response.data)) {
-      console.log('API trả về mảng trực tiếp, bọc vào cấu trúc chuẩn');
-      return {
-        content: response.data,
-        totalElements: response.data.length,
-        totalPages: 1,
-        size: params.pageSize,
-        number: params.pageIndex - 1
-      };
     }
     
     // Nếu không phân tích được, trả về dữ liệu mẫu
@@ -104,46 +97,6 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
     // Kiểm tra lỗi 401 Unauthorized
     if (error.response && error.response.status === 401) {
       console.log('Lỗi xác thực 401, sử dụng dữ liệu mẫu');
-      const mockData = getMockAccounts(params);
-      console.log('Mock data:', mockData);
-      return mockData;
-    }
-    
-    // Thêm xử lý cho trường hợp API trả về dữ liệu không đúng định dạng
-    if (error.response && error.response.data) {
-      console.log('API trả về lỗi với dữ liệu:', error.response.data);
-      
-      // Nếu API trả về lỗi nhưng có thể sử dụng được dữ liệu
-      if (error.response.status === 200 || error.response.status === 201) {
-        try {
-          const responseData = error.response.data;
-          
-          // Kiểm tra xem có thể sử dụng được dữ liệu không
-          if (responseData && typeof responseData === 'object') {
-            // Nếu có thuộc tính content và là mảng
-            if (responseData.content && Array.isArray(responseData.content)) {
-              console.log('Dữ liệu lỗi có thể sử dụng được');
-              return responseData;
-            }
-            
-            // Nếu responseData là mảng
-            if (Array.isArray(responseData)) {
-              console.log('Dữ liệu lỗi là mảng, bọc vào cấu trúc chuẩn');
-              return {
-                content: responseData,
-                totalElements: responseData.length,
-                totalPages: 1,
-                size: params.pageSize,
-                number: params.pageIndex - 1
-              };
-            }
-          }
-        } catch (parseError) {
-          console.error('Lỗi khi phân tích dữ liệu lỗi:', parseError);
-        }
-      }
-      
-      // Trả về dữ liệu mẫu nếu không thể xử lý lỗi
       const mockData = getMockAccounts(params);
       console.log('Mock data:', mockData);
       return mockData;

@@ -38,6 +38,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import { TOKEN } from '../../utils/config';
 
 const AccountsPage: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -113,7 +114,7 @@ const AccountsPage: React.FC = () => {
   }, [fetchAccounts]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = TOKEN;
     if (!token) {
       console.log('Không có token xác thực, sử dụng dữ liệu mẫu');
       setError('Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn');
