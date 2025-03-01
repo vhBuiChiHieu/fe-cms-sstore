@@ -10,6 +10,7 @@
 - [x] Thêm chức năng đăng xuất
 - [x] Tạo biến BASE_URL trong utils/config.ts để sử dụng cho các API call
 - [x] Cập nhật chức năng đăng nhập để gọi API và lưu token
+- [x] Tạo trang 404 Not Found
 
 ## Cần làm
 

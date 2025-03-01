@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import Dashboard from '../pages/Dashboard';
 import Login from '../pages/Login';
+import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const AppRoutes: React.FC = () => {
@@ -24,8 +25,11 @@ const AppRoutes: React.FC = () => {
         </Route>
       </Route>
       
-      {/* Chuyển hướng các route không hợp lệ */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Trang 404 Not Found */}
+      <Route path="404" element={<NotFound />} />
+      
+      {/* Chuyển hướng các route không hợp lệ đến trang 404 */}
+      <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
   );
 };
