@@ -9,6 +9,7 @@
 - [x] Bảo vệ các route yêu cầu đăng nhập (ProtectedRoute)
 - [x] Thêm chức năng đăng xuất
 - [x] Tạo biến BASE_URL trong utils/config.ts để sử dụng cho các API call
+- [x] Cập nhật chức năng đăng nhập để gọi API và lưu token
 
 ## Cần làm
 
@@ -38,7 +39,7 @@
   - [ ] Cài đặt hệ thống
 
 - [ ] Kết nối với API backend
-  - [ ] Xác thực người dùng
+  - [x] Xác thực người dùng
   - [ ] Lấy và cập nhật dữ liệu
 
 - [ ] Tối ưu hóa hiệu suất
