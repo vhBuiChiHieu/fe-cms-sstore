@@ -5,6 +5,7 @@ import Dashboard from '../pages/Dashboard';
 import Login from '../pages/Login';
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
+import AccountsPage from '../pages/users/AccountsPage';
 
 const AppRoutes: React.FC = () => {
   console.log('Rendering AppRoutes');
@@ -21,7 +22,14 @@ const AppRoutes: React.FC = () => {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<div>Trang Sản phẩm</div>} />
           <Route path="orders" element={<div>Trang Đơn hàng</div>} />
-          <Route path="customers" element={<div>Trang Khách hàng</div>} />
+          
+          {/* Routes người dùng */}
+          <Route path="users">
+            <Route index element={<Navigate to="/users/accounts" replace />} />
+            <Route path="accounts" element={<AccountsPage />} />
+            <Route path="profiles" element={<div>Trang Thông tin cá nhân người dùng</div>} />
+          </Route>
+          
           <Route path="reports" element={<div>Trang Báo cáo</div>} />
           <Route path="settings" element={<div>Trang Cài đặt</div>} />
         </Route>
