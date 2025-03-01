@@ -24,7 +24,12 @@ import {
   Alert,
   Grid,
   SelectChangeEvent,
-  Stack
+  Stack,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -37,7 +42,7 @@ import {
   ArrowBackIosNew as ArrowBackIosNewIcon,
   ArrowForwardIos as ArrowForwardIosIcon
 } from '@mui/icons-material';
-import { getAccounts, Account, AccountListParams } from '../../services/accountService';
+import { getAccounts, Account, AccountListParams, deleteAccount } from '../../services/accountService';
 import { getRoles, Role } from '../../services/roleService';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -54,6 +59,10 @@ const AccountsPage: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [roles, setRoles] = useState<Role[]>([]);
   const [error, setError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -189,8 +198,8 @@ const AccountsPage: React.FC = () => {
         return <Chip label="Quản trị viên" color="primary" size="small" />;
       case 'manager':
         return <Chip label="Quản lý" color="secondary" size="small" />;
-      case 'staff':
-        return <Chip label="Nhân viên" color="info" size="small" />;
+      case 'guest':
+        return <Chip label="Khách" color="info" size="small" />;
       case 'user':
         return <Chip label="Người dùng" color="default" size="small" />;
       default:
@@ -210,6 +219,44 @@ const AccountsPage: React.FC = () => {
 
   const handleCloseError = () => {
     setError('');
+  };
+
+  const handleCloseSuccess = () => {
+    setSuccessMessage('');
+  };
+
+  const handleDeleteClick = (accountId: string) => {
+    setAccountToDelete(accountId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setAccountToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!accountToDelete) return;
+    
+    setDeleteLoading(true);
+    try {
+      const success = await deleteAccount(accountToDelete);
+      
+      if (success) {
+        setSuccessMessage(`Đã xóa tài khoản thành công`);
+        // Cập nhật lại danh sách tài khoản
+        fetchAccounts();
+      } else {
+        setError('Không thể xóa tài khoản. Vui lòng thử lại sau.');
+      }
+    } catch (error) {
+      console.error('Lỗi khi xóa tài khoản:', error);
+      setError('Đã xảy ra lỗi khi xóa tài khoản.');
+    } finally {
+      setDeleteLoading(false);
+      setDeleteDialogOpen(false);
+      setAccountToDelete(null);
+    }
   };
 
   return (
@@ -277,7 +324,7 @@ const AccountsPage: React.FC = () => {
                   <MenuItem key={role.id} value={role.name}>
                     {role.name === 'ADMIN' ? 'Quản trị viên' : 
                      role.name === 'MANAGER' ? 'Quản lý' : 
-                     role.name === 'STAFF' ? 'Nhân viên' : 
+                     role.name === 'GUEST' ? 'Khách' : 
                      role.name === 'USER' ? 'Người dùng' : 
                      role.name}
                   </MenuItem>
@@ -369,7 +416,11 @@ const AccountsPage: React.FC = () => {
                             </Tooltip>
                           )}
                           <Tooltip title="Xóa">
-                            <IconButton size="small" color="error" onClick={() => console.log('Delete', account.id)}>
+                            <IconButton 
+                              size="small" 
+                              color="error" 
+                              onClick={() => handleDeleteClick(account.id)}
+                            >
                               <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -450,6 +501,45 @@ const AccountsPage: React.FC = () => {
           {error}
         </Alert>
       </Snackbar>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseSuccess}
+      >
+        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Dialog xác nhận xóa tài khoản */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+      >
+        <DialogTitle>
+          Xác nhận xóa tài khoản
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog} color="primary">
+            Hủy
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete} 
+            color="error" 
+            variant="contained" 
+            disabled={deleteLoading}
+            startIcon={deleteLoading ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

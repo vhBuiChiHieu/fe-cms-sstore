@@ -17,13 +17,14 @@
 - [x] Hiển thị số trang hiện tại trong phần phân trang
 - [x] Tùy chỉnh phân trang với số trang hiển thị ở giữa các nút chuyển trang
 - [x] Cập nhật ô chọn Vai trò để lấy dữ liệu từ API
+- [x] Thêm chức năng xóa tài khoản với dialog xác nhận
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản
   - [ ] Tạo form thêm tài khoản mới
   - [ ] Tạo form chỉnh sửa tài khoản
   - [ ] Xử lý khóa/mở khóa tài khoản
-  - [ ] Xử lý xóa tài khoản
+  - [x] Xử lý xóa tài khoản
 - [ ] Tạo trang quản lý sản phẩm
 - [ ] Tạo trang quản lý đơn hàng
 - [ ] Tạo trang quản lý danh mục

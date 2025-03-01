@@ -112,6 +112,32 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
 };
 
 /**
+ * Xóa tài khoản
+ * @param accountId ID của tài khoản cần xóa
+ */
+export const deleteAccount = async (accountId: string): Promise<boolean> => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/api/account/${accountId}`, {
+      headers: {
+        Authorization: `Bearer ${TOKEN}`
+      }
+    });
+    
+    console.log('API delete account response:', response.data);
+    
+    // Kiểm tra response từ API
+    if (response.status === 200 || response.status === 204) {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Lỗi khi xóa tài khoản:', error);
+    return false;
+  }
+};
+
+/**
  * Tạo dữ liệu mẫu cho danh sách tài khoản
  */
 export const getMockAccounts = (params: AccountListParams): AccountListResponse => {
