@@ -14,8 +14,18 @@
 - [x] Sửa lỗi đăng nhập không chuyển hướng đến dashboard
 - [x] Thêm chức năng thu gọn menu trong layout
 - [x] Đổi menu "Khách hàng" thành "Người dùng" với menu con "Tài khoản" và "Thông tin cá nhân"
+- [x] Tạo trang quản lý tài khoản người dùng với chức năng xem danh sách, tìm kiếm và lọc
+- [x] Sửa lỗi hiển thị trang quản lý tài khoản (accounts is undefined)
+- [x] Sửa lỗi ESLint về import không sử dụng trong các components
 
 ## Cần làm
+
+- [ ] Hoàn thiện trang quản lý người dùng
+  - [ ] Thêm chức năng tạo tài khoản mới
+  - [ ] Thêm chức năng chỉnh sửa tài khoản
+  - [ ] Thêm chức năng khóa/mở khóa tài khoản
+  - [ ] Thêm chức năng xóa tài khoản
+  - [ ] Tạo trang thông tin cá nhân người dùng
 
 - [ ] Tạo trang quản lý sản phẩm
   - [ ] Danh sách sản phẩm
@@ -26,15 +36,6 @@
   - [ ] Danh sách đơn hàng
   - [ ] Chi tiết đơn hàng
   - [ ] Cập nhật trạng thái đơn hàng
-
-- [ ] Tạo trang quản lý người dùng
-  - [ ] Quản lý tài khoản
-    - [ ] Danh sách tài khoản
-    - [ ] Thêm/Sửa/Xóa tài khoản
-    - [ ] Phân quyền người dùng
-  - [ ] Quản lý thông tin cá nhân
-    - [ ] Hồ sơ người dùng
-    - [ ] Lịch sử hoạt động
 
 - [ ] Tạo trang báo cáo
   - [ ] Báo cáo doanh thu
@@ -48,7 +49,8 @@
 
 - [ ] Kết nối với API backend
   - [x] Xác thực người dùng
-  - [ ] Lấy và cập nhật dữ liệu
+  - [x] Lấy danh sách tài khoản
+  - [ ] Lấy và cập nhật dữ liệu khác
 
 - [ ] Tối ưu hóa hiệu suất
   - [ ] Lazy loading các component

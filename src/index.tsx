@@ -4,6 +4,9 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+// Import Roboto font - sử dụng đường dẫn chính xác
+import '@fontsource/roboto';
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );

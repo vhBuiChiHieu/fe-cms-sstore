@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -19,6 +19,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  SelectChangeEvent,
   Grid,
   Tooltip,
   CircularProgress
@@ -46,7 +47,7 @@ const AccountsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<string>('');
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     setLoading(true);
     try {
       const params: AccountListParams = {
@@ -58,18 +59,25 @@ const AccountsPage: React.FC = () => {
       };
       
       const response = await getAccounts(params);
-      setAccounts(response.content);
-      setTotalElements(response.totalElements);
+      console.log('Response:', response);
+      if (response && response.content) {
+        setAccounts(response.content);
+        setTotalElements(response.totalElements);
+      } else {
+        console.error('Không có dữ liệu trả về từ API');
+        setAccounts([]);
+        setTotalElements(0);
+      }
     } catch (error) {
       console.error('Lỗi khi lấy danh sách tài khoản:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, searchTerm, statusFilter, roleFilter]);
 
   useEffect(() => {
     fetchAccounts();
-  }, [page, rowsPerPage, searchTerm, statusFilter, roleFilter]);
+  }, [fetchAccounts]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -85,13 +93,13 @@ const AccountsPage: React.FC = () => {
     setPage(0);
   };
 
-  const handleStatusFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setStatusFilter(event.target.value as string);
+  const handleStatusFilterChange = (event: SelectChangeEvent) => {
+    setStatusFilter(event.target.value);
     setPage(0);
   };
 
-  const handleRoleFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setRoleFilter(event.target.value as string);
+  const handleRoleFilterChange = (event: SelectChangeEvent) => {
+    setRoleFilter(event.target.value);
     setPage(0);
   };
 

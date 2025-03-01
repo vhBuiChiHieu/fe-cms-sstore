@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { BASE_URL } from '../utils/config';
+import axios from 'axios';
 
 export interface Account {
   id: string;

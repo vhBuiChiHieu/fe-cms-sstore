@@ -29,7 +29,6 @@ import {
   Assessment as AssessmentIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
-  AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
   Person as PersonIcon,
   ChevronLeft as ChevronLeftIcon,
