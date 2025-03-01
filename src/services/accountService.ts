@@ -95,7 +95,9 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
     console.error('Lỗi khi lấy danh sách tài khoản:', error);
     
     // Kiểm tra lỗi 401 Unauthorized
-    if (error.response && error.response.status === 401) {
+    if (error && typeof error === 'object' && 'response' in error && 
+        error.response && typeof error.response === 'object' && 
+        'status' in error.response && error.response.status === 401) {
       console.log('Lỗi xác thực 401, sử dụng dữ liệu mẫu');
       const mockData = getMockAccounts(params);
       console.log('Mock data:', mockData);
