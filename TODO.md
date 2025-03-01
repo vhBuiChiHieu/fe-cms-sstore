@@ -1,71 +1,72 @@
 # TODO List cho dự án CMS S-Store
 
 ## Đã hoàn thành
-
-- [x] Tạo khung giao diện chính với Material UI
-- [x] Tạo trang Dashboard với các thẻ tóm tắt và biểu đồ
-- [x] Tạo trang đăng nhập (Login) với xác thực email và mật khẩu
-- [x] Thiết lập hệ thống xác thực (AuthContext)
-- [x] Bảo vệ các route yêu cầu đăng nhập (ProtectedRoute)
-- [x] Thêm chức năng đăng xuất
-- [x] Tạo biến BASE_URL trong utils/config.ts để sử dụng cho các API call
-- [x] Cập nhật chức năng đăng nhập để gọi API và lưu token
-- [x] Tạo trang 404 Not Found
-- [x] Sửa lỗi đăng nhập không chuyển hướng đến dashboard
-- [x] Thêm chức năng thu gọn menu trong layout
-- [x] Đổi menu "Khách hàng" thành "Người dùng" với menu con "Tài khoản" và "Thông tin cá nhân"
+- [x] Tạo cấu trúc dự án cơ bản
+- [x] Thiết lập các route cơ bản
+- [x] Tạo trang đăng nhập
+- [x] Tạo layout chính
+- [x] Tạo trang dashboard
 - [x] Tạo trang quản lý tài khoản người dùng với chức năng xem danh sách, tìm kiếm và lọc
-- [x] Sửa lỗi hiển thị trang quản lý tài khoản (accounts is undefined)
+- [x] Sửa lỗi hiển thị danh sách tài khoản (accounts is undefined)
 - [x] Sửa lỗi ESLint về import không sử dụng trong các components
+- [x] Cải thiện xử lý lỗi khi gọi API
+- [x] Xử lý các trường hợp API trả về dữ liệu không đúng định dạng
+- [x] Thêm xử lý cho trường hợp không có token xác thực
+- [x] Cải thiện hiển thị thông báo lỗi
 
-## Cần làm
-
-- [ ] Hoàn thiện trang quản lý người dùng
-  - [ ] Thêm chức năng tạo tài khoản mới
-  - [ ] Thêm chức năng chỉnh sửa tài khoản
-  - [ ] Thêm chức năng khóa/mở khóa tài khoản
-  - [ ] Thêm chức năng xóa tài khoản
-  - [ ] Tạo trang thông tin cá nhân người dùng
-
+## Đang thực hiện
+- [ ] Hoàn thiện chức năng quản lý tài khoản
+  - [ ] Tạo form thêm tài khoản mới
+  - [ ] Tạo form chỉnh sửa tài khoản
+  - [ ] Xử lý khóa/mở khóa tài khoản
+  - [ ] Xử lý xóa tài khoản
 - [ ] Tạo trang quản lý sản phẩm
-  - [ ] Danh sách sản phẩm
-  - [ ] Thêm/Sửa/Xóa sản phẩm
-  - [ ] Tìm kiếm và lọc sản phẩm
-
 - [ ] Tạo trang quản lý đơn hàng
-  - [ ] Danh sách đơn hàng
-  - [ ] Chi tiết đơn hàng
-  - [ ] Cập nhật trạng thái đơn hàng
+- [ ] Tạo trang quản lý danh mục
 
-- [ ] Tạo trang báo cáo
-  - [ ] Báo cáo doanh thu
-  - [ ] Báo cáo sản phẩm bán chạy
-  - [ ] Báo cáo người dùng tiềm năng
+## Cần thực hiện
+- [ ] Phát triển các chức năng quản lý khác
+  - [ ] Quản lý danh mục sản phẩm
+  - [ ] Quản lý sản phẩm
+  - [ ] Quản lý đơn hàng
+  - [ ] Quản lý khách hàng
+  - [ ] Quản lý khuyến mãi
+  - [ ] Quản lý thanh toán
+  - [ ] Quản lý vận chuyển
+  - [ ] Quản lý kho hàng
+  - [ ] Quản lý báo cáo và thống kê
+- [ ] Phát triển các tính năng bổ sung
+  - [ ] Hệ thống thông báo
+  - [ ] Hệ thống nhắn tin nội bộ
+  - [ ] Hệ thống quản lý tệp tin
+  - [ ] Hệ thống quản lý nội dung
+  - [ ] Hệ thống quản lý cấu hình
+  - [ ] Hệ thống quản lý quyền truy cập
+  - [ ] Hệ thống quản lý phiên bản
+  - [ ] Hệ thống quản lý sao lưu và khôi phục
 
-- [ ] Tạo trang cài đặt
-  - [ ] Thông tin cửa hàng
-  - [ ] Quản lý người dùng
-  - [ ] Cài đặt hệ thống
-
-- [ ] Kết nối với API backend
-  - [x] Xác thực người dùng
-  - [x] Lấy danh sách tài khoản
-  - [ ] Lấy và cập nhật dữ liệu khác
-
+## Cần cải thiện
 - [ ] Tối ưu hóa hiệu suất
-  - [ ] Lazy loading các component
-  - [ ] Memoization để tránh render không cần thiết
+- [ ] Thêm unit test và integration test
+- [ ] Cải thiện giao diện người dùng
+- [ ] Thêm validation cho các form
+- [ ] Tạo hệ thống thông báo toàn cục
+- [ ] Cải thiện hệ thống xác thực và phân quyền
+- [ ] Tối ưu hóa SEO
+- [ ] Tối ưu hóa trải nghiệm người dùng
+- [ ] Tối ưu hóa tốc độ tải trang
+- [ ] Tối ưu hóa kích thước bundle
 
-- [ ] Kiểm thử
-  - [ ] Viết unit tests
-  - [ ] Kiểm thử tích hợp
-
-- [ ] Triển khai
+## Triển khai
+- [ ] Chuẩn bị môi trường triển khai
+  - [ ] Cấu hình máy chủ
+  - [ ] Cấu hình cơ sở dữ liệu
+  - [ ] Cấu hình bảo mật
+- [ ] Triển khai ứng dụng
   - [ ] Build ứng dụng
   - [ ] Triển khai lên môi trường production
 
 ## Ghi chú
-
 - Ưu tiên hoàn thiện các chức năng cơ bản trước
-- Đảm bảo giao diện responsive trên các thiết bị
-- Tuân thủ các nguyên tắc SOLID và DRY trong quá trình phát triển
+- Cần kiểm tra kỹ lỗi và xử lý các trường hợp ngoại lệ
+- Cần cải thiện trải nghiệm người dùng

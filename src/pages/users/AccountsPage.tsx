@@ -36,6 +36,8 @@ import {
 import { getAccounts, Account, AccountListParams } from '../../services/accountService';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 const AccountsPage: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -46,6 +48,7 @@ const AccountsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -58,18 +61,48 @@ const AccountsPage: React.FC = () => {
         role: roleFilter || undefined
       };
       
+      console.log('Gọi API với params:', params);
       const response = await getAccounts(params);
-      console.log('Response:', response);
-      if (response && response.content) {
-        setAccounts(response.content);
-        setTotalElements(response.totalElements);
-      } else {
-        console.error('Không có dữ liệu trả về từ API');
+      console.log('Response:', JSON.stringify(response, null, 2));
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', response ? Object.keys(response) : 'null');
+      console.log('Response content:', response?.content);
+      console.log('Response content type:', response?.content ? typeof response.content : 'undefined');
+      console.log('Response content length:', response?.content?.length);
+      
+      // Kiểm tra response và response.content
+      if (!response) {
+        console.error('Response là null hoặc undefined');
         setAccounts([]);
         setTotalElements(0);
+        setError('Không thể lấy dữ liệu từ API');
+        return;
       }
+      
+      if (!response.content) {
+        console.error('Response.content là null hoặc undefined');
+        setAccounts([]);
+        setTotalElements(0);
+        setError('Không thể lấy dữ liệu từ API');
+        return;
+      }
+      
+      if (!Array.isArray(response.content)) {
+        console.error('Response.content không phải là mảng:', response.content);
+        setAccounts([]);
+        setTotalElements(0);
+        setError('Không thể lấy dữ liệu từ API');
+        return;
+      }
+      
+      console.log('Đã nhận được dữ liệu mảng hợp lệ, độ dài:', response.content.length);
+      setAccounts(response.content);
+      setTotalElements(response.totalElements || 0);
     } catch (error) {
       console.error('Lỗi khi lấy danh sách tài khoản:', error);
+      setAccounts([]);
+      setTotalElements(0);
+      setError('Không thể lấy dữ liệu từ API');
     } finally {
       setLoading(false);
     }
@@ -78,6 +111,14 @@ const AccountsPage: React.FC = () => {
   useEffect(() => {
     fetchAccounts();
   }, [fetchAccounts]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('Không có token xác thực, sử dụng dữ liệu mẫu');
+      setError('Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn');
+    }
+  }, []);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -108,7 +149,9 @@ const AccountsPage: React.FC = () => {
   };
 
   const getStatusChip = (status: string) => {
-    switch (status) {
+    if (!status) return <Chip label="N/A" size="small" />;
+    
+    switch (status.toLowerCase()) {
       case 'active':
         return <Chip label="Hoạt động" color="success" size="small" />;
       case 'inactive':
@@ -121,14 +164,16 @@ const AccountsPage: React.FC = () => {
   };
 
   const getRoleChip = (role: string) => {
-    switch (role.toUpperCase()) {
-      case 'ADMIN':
+    if (!role) return <Chip label="N/A" size="small" />;
+    
+    switch (role.toLowerCase()) {
+      case 'admin':
         return <Chip label="Quản trị viên" color="primary" size="small" />;
-      case 'MANAGER':
+      case 'manager':
         return <Chip label="Quản lý" color="secondary" size="small" />;
-      case 'STAFF':
+      case 'staff':
         return <Chip label="Nhân viên" color="info" size="small" />;
-      case 'USER':
+      case 'user':
         return <Chip label="Người dùng" color="default" size="small" />;
       default:
         return <Chip label={role} size="small" />;
@@ -136,11 +181,17 @@ const AccountsPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     try {
       return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: vi });
     } catch (error) {
-      return 'Không xác định';
+      console.error('Lỗi khi định dạng ngày:', error);
+      return dateString || 'N/A';
     }
+  };
+
+  const handleCloseError = () => {
+    setError('');
   };
 
   return (
@@ -227,13 +278,13 @@ const AccountsPage: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Tên người dùng</TableCell>
+                <TableCell>Tên đăng nhập</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Họ tên</TableCell>
                 <TableCell>Vai trò</TableCell>
                 <TableCell>Trạng thái</TableCell>
                 <TableCell>Ngày tạo</TableCell>
-                <TableCell>Đăng nhập gần nhất</TableCell>
+                <TableCell>Đăng nhập cuối</TableCell>
                 <TableCell align="center">Thao tác</TableCell>
               </TableRow>
             </TableHead>
@@ -247,7 +298,7 @@ const AccountsPage: React.FC = () => {
                     </Typography>
                   </TableCell>
                 </TableRow>
-              ) : accounts.length === 0 ? (
+              ) : !accounts || accounts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
                     <Typography variant="body1">
@@ -256,45 +307,52 @@ const AccountsPage: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                accounts.map((account) => (
-                  <TableRow key={account.id} hover>
-                    <TableCell>{account.id}</TableCell>
-                    <TableCell>{account.username}</TableCell>
-                    <TableCell>{account.email}</TableCell>
-                    <TableCell>{account.fullName}</TableCell>
-                    <TableCell>{getRoleChip(account.role)}</TableCell>
-                    <TableCell>{getStatusChip(account.status)}</TableCell>
-                    <TableCell>{formatDate(account.createdAt)}</TableCell>
-                    <TableCell>{formatDate(account.lastLogin)}</TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                        <Tooltip title="Chỉnh sửa">
-                          <IconButton size="small" color="primary">
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {account.status === 'locked' ? (
-                          <Tooltip title="Mở khóa">
-                            <IconButton size="small" color="success">
-                              <LockOpenIcon fontSize="small" />
+                accounts.map((account) => {
+                  if (!account) {
+                    console.error('Account item is null or undefined');
+                    return null;
+                  }
+                  
+                  return (
+                    <TableRow key={account.id || `row-${Math.random()}`} hover>
+                      <TableCell>{account.id || 'N/A'}</TableCell>
+                      <TableCell>{account.username}</TableCell>
+                      <TableCell>{account.email}</TableCell>
+                      <TableCell>{account.fullName}</TableCell>
+                      <TableCell>{getRoleChip(account.role)}</TableCell>
+                      <TableCell>{getStatusChip(account.status)}</TableCell>
+                      <TableCell>{formatDate(account.createdAt)}</TableCell>
+                      <TableCell>{formatDate(account.lastLogin)}</TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                          <Tooltip title="Chỉnh sửa">
+                            <IconButton size="small" color="primary" onClick={() => console.log('Edit', account.id)}>
+                              <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                        ) : (
-                          <Tooltip title="Khóa">
-                            <IconButton size="small" color="warning">
-                              <LockIcon fontSize="small" />
+                          {account.status === 'active' ? (
+                            <Tooltip title="Khóa tài khoản">
+                              <IconButton size="small" color="warning" onClick={() => console.log('Lock', account.id)}>
+                                <LockIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip title="Mở khóa tài khoản">
+                              <IconButton size="small" color="success" onClick={() => console.log('Unlock', account.id)}>
+                                <LockOpenIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          <Tooltip title="Xóa">
+                            <IconButton size="small" color="error" onClick={() => console.log('Delete', account.id)}>
+                              <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                        )}
-                        <Tooltip title="Xóa">
-                          <IconButton size="small" color="error">
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -312,6 +370,15 @@ const AccountsPage: React.FC = () => {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
         />
       </Paper>
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+      >
+        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
