@@ -38,6 +38,7 @@ import {
   ArrowForwardIos as ArrowForwardIosIcon
 } from '@mui/icons-material';
 import { getAccounts, Account, AccountListParams } from '../../services/accountService';
+import { getRoles, Role } from '../../services/roleService';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { TOKEN } from '../../utils/config';
@@ -51,6 +52,7 @@ const AccountsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<string>('');
+  const [roles, setRoles] = useState<Role[]>([]);
   const [error, setError] = useState<string>('');
 
   const fetchAccounts = useCallback(async () => {
@@ -114,6 +116,19 @@ const AccountsPage: React.FC = () => {
   useEffect(() => {
     fetchAccounts();
   }, [fetchAccounts]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const rolesData = await getRoles();
+        setRoles(rolesData);
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách vai trò:', error);
+      }
+    };
+
+    fetchRoles();
+  }, []);
 
   useEffect(() => {
     const token = TOKEN;
@@ -258,10 +273,15 @@ const AccountsPage: React.FC = () => {
                 onChange={handleRoleFilterChange}
               >
                 <MenuItem value="">Tất cả</MenuItem>
-                <MenuItem value="ADMIN">Quản trị viên</MenuItem>
-                <MenuItem value="MANAGER">Quản lý</MenuItem>
-                <MenuItem value="STAFF">Nhân viên</MenuItem>
-                <MenuItem value="USER">Người dùng</MenuItem>
+                {roles.map((role) => (
+                  <MenuItem key={role.id} value={role.name}>
+                    {role.name === 'ADMIN' ? 'Quản trị viên' : 
+                     role.name === 'MANAGER' ? 'Quản lý' : 
+                     role.name === 'STAFF' ? 'Nhân viên' : 
+                     role.name === 'USER' ? 'Người dùng' : 
+                     role.name}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>

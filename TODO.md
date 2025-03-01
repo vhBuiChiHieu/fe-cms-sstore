@@ -16,6 +16,7 @@
 - [x] Thêm cột STT (số thứ tự) vào bảng danh sách tài khoản
 - [x] Hiển thị số trang hiện tại trong phần phân trang
 - [x] Tùy chỉnh phân trang với số trang hiển thị ở giữa các nút chuyển trang
+- [x] Cập nhật ô chọn Vai trò để lấy dữ liệu từ API
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản
