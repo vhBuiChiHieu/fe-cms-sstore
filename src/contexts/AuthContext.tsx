@@ -89,9 +89,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       setAuthState(newAuthState);
       
-      if (rememberMe) {
-        localStorage.setItem('authState', JSON.stringify(newAuthState));
-      }
+      // Luôn lưu token khi đăng nhập thành công
+      localStorage.setItem('authState', JSON.stringify(newAuthState));
       
       setIsLoading(false);
       return true;

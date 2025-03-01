@@ -41,10 +41,10 @@ const Login: React.FC = () => {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang chính
+  // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang Dashboard
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
@@ -109,7 +109,8 @@ const Login: React.FC = () => {
         if (success) {
           setSnackbarMessage('Đăng nhập thành công!');
           setShowSnackbar(true);
-          // Chuyển hướng sẽ được xử lý bởi useEffect khi isAuthenticated thay đổi
+          // Chuyển hướng đến trang Dashboard
+          navigate('/dashboard');
         }
       } catch (error) {
         console.error('Lỗi khi đăng nhập:', error);
