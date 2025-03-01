@@ -12,6 +12,7 @@
 - [x] Cập nhật chức năng đăng nhập để gọi API và lưu token
 - [x] Tạo trang 404 Not Found
 - [x] Sửa lỗi đăng nhập không chuyển hướng đến dashboard
+- [x] Thêm chức năng thu gọn menu trong layout
 
 ## Cần làm
 
