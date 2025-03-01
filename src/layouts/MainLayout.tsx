@@ -17,7 +17,8 @@ import {
   Menu,
   MenuItem,
   Badge,
-  Tooltip
+  Tooltip,
+  Collapse
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -32,7 +33,11 @@ import {
   Logout as LogoutIcon,
   Person as PersonIcon,
   ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  ExpandLess as ExpandLessIcon,
+  ExpandMore as ExpandMoreIcon,
+  AccountBox as AccountBoxIcon,
+  ContactPage as ContactPageIcon
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,6 +57,7 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -59,6 +65,10 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
 
   const handleCollapseToggle = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const handleSubMenuToggle = (menuId: string) => {
+    setOpenSubMenu(openSubMenu === menuId ? null : menuId);
   };
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -83,7 +93,15 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Sản phẩm', icon: <InventoryIcon />, path: '/products' },
     { text: 'Đơn hàng', icon: <ShoppingCartIcon />, path: '/orders' },
-    { text: 'Khách hàng', icon: <PeopleIcon />, path: '/customers' },
+    { 
+      text: 'Người dùng', 
+      icon: <PeopleIcon />, 
+      path: '/users',
+      subItems: [
+        { text: 'Tài khoản', icon: <AccountBoxIcon />, path: '/users/accounts' },
+        { text: 'Thông tin cá nhân', icon: <ContactPageIcon />, path: '/users/profiles' }
+      ]
+    },
     { text: 'Báo cáo', icon: <AssessmentIcon />, path: '/reports' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
@@ -94,7 +112,9 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
     if (path === '/') return 'Dashboard';
     if (path.startsWith('/products')) return 'Sản phẩm';
     if (path.startsWith('/orders')) return 'Đơn hàng';
-    if (path.startsWith('/customers')) return 'Khách hàng';
+    if (path.startsWith('/users/accounts')) return 'Tài khoản người dùng';
+    if (path.startsWith('/users/profiles')) return 'Thông tin cá nhân người dùng';
+    if (path.startsWith('/users')) return 'Người dùng';
     if (path.startsWith('/reports')) return 'Báo cáo';
     if (path.startsWith('/settings')) return 'Cài đặt';
     return 'Dashboard';
@@ -115,27 +135,66 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
       <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <Tooltip title={isCollapsed ? item.text : ""} placement="right" arrow>
-              <ListItemButton 
-                onClick={() => navigate(item.path)}
-                selected={
-                  item.path === '/' 
-                    ? location.pathname === '/' 
-                    : location.pathname.startsWith(item.path)
-                }
-                sx={{ 
-                  justifyContent: isCollapsed ? 'center' : 'flex-start',
-                  px: isCollapsed ? 1 : 2
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: isCollapsed ? 0 : 40 }}>
-                  {item.icon}
-                </ListItemIcon>
-                {!isCollapsed && <ListItemText primary={item.text} />}
-              </ListItemButton>
-            </Tooltip>
-          </ListItem>
+          <React.Fragment key={item.text}>
+            <ListItem disablePadding>
+              <Tooltip title={isCollapsed ? item.text : ""} placement="right" arrow>
+                <ListItemButton 
+                  onClick={() => {
+                    if (item.subItems) {
+                      if (!isCollapsed) {
+                        handleSubMenuToggle(item.text);
+                      } else {
+                        navigate(item.path);
+                      }
+                    } else {
+                      navigate(item.path);
+                    }
+                  }}
+                  selected={
+                    item.path === '/' 
+                      ? location.pathname === '/' 
+                      : location.pathname.startsWith(item.path)
+                  }
+                  sx={{ 
+                    justifyContent: isCollapsed ? 'center' : 'flex-start',
+                    px: isCollapsed ? 1 : 2
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: isCollapsed ? 0 : 40 }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  {!isCollapsed && (
+                    <>
+                      <ListItemText primary={item.text} />
+                      {item.subItems && (
+                        openSubMenu === item.text ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      )}
+                    </>
+                  )}
+                </ListItemButton>
+              </Tooltip>
+            </ListItem>
+            {item.subItems && !isCollapsed && (
+              <Collapse in={openSubMenu === item.text} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {item.subItems.map((subItem) => (
+                    <ListItem key={subItem.text} disablePadding>
+                      <ListItemButton 
+                        onClick={() => navigate(subItem.path)}
+                        selected={location.pathname.startsWith(subItem.path)}
+                        sx={{ pl: 4 }}
+                      >
+                        <ListItemIcon>
+                          {subItem.icon}
+                        </ListItemIcon>
+                        <ListItemText primary={subItem.text} />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </Collapse>
+            )}
+          </React.Fragment>
         ))}
       </List>
     </div>

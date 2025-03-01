@@ -13,6 +13,7 @@
 - [x] Tạo trang 404 Not Found
 - [x] Sửa lỗi đăng nhập không chuyển hướng đến dashboard
 - [x] Thêm chức năng thu gọn menu trong layout
+- [x] Đổi menu "Khách hàng" thành "Người dùng" với menu con "Tài khoản" và "Thông tin cá nhân"
 
 ## Cần làm
 
@@ -26,15 +27,19 @@
   - [ ] Chi tiết đơn hàng
   - [ ] Cập nhật trạng thái đơn hàng
 
-- [ ] Tạo trang quản lý khách hàng
-  - [ ] Danh sách khách hàng
-  - [ ] Thông tin chi tiết khách hàng
-  - [ ] Lịch sử mua hàng của khách hàng
+- [ ] Tạo trang quản lý người dùng
+  - [ ] Quản lý tài khoản
+    - [ ] Danh sách tài khoản
+    - [ ] Thêm/Sửa/Xóa tài khoản
+    - [ ] Phân quyền người dùng
+  - [ ] Quản lý thông tin cá nhân
+    - [ ] Hồ sơ người dùng
+    - [ ] Lịch sử hoạt động
 
 - [ ] Tạo trang báo cáo
   - [ ] Báo cáo doanh thu
   - [ ] Báo cáo sản phẩm bán chạy
-  - [ ] Báo cáo khách hàng tiềm năng
+  - [ ] Báo cáo người dùng tiềm năng
 
 - [ ] Tạo trang cài đặt
   - [ ] Thông tin cửa hàng
