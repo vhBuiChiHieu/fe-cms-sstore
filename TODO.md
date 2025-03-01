@@ -14,6 +14,7 @@
 - [x] Thêm xử lý cho trường hợp không có token xác thực
 - [x] Cải thiện hiển thị thông báo lỗi
 - [x] Thêm cột STT (số thứ tự) vào bảng danh sách tài khoản
+- [x] Hiển thị số trang hiện tại trong phần phân trang
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản
