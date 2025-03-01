@@ -11,6 +11,7 @@
 - [x] Tạo biến BASE_URL trong utils/config.ts để sử dụng cho các API call
 - [x] Cập nhật chức năng đăng nhập để gọi API và lưu token
 - [x] Tạo trang 404 Not Found
+- [x] Sửa lỗi đăng nhập không chuyển hướng đến dashboard
 
 ## Cần làm
 
