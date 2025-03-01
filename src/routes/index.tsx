@@ -7,6 +7,8 @@ import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const AppRoutes: React.FC = () => {
+  console.log('Rendering AppRoutes');
+  
   return (
     <Routes>
       <Route path="/login" element={<Login />} />

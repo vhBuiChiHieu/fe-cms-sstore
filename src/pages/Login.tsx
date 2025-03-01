@@ -43,6 +43,7 @@ const Login: React.FC = () => {
 
   // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang Dashboard
   useEffect(() => {
+    console.log('isAuthenticated changed:', isAuthenticated);
     if (isAuthenticated) {
       navigate('/dashboard');
     }
@@ -105,7 +106,10 @@ const Login: React.FC = () => {
     
     if (validateForm()) {
       try {
+        console.log('Đang đăng nhập với:', email, password);
         const success = await login(email, password, rememberMe);
+        console.log('Kết quả đăng nhập:', success);
+        
         if (success) {
           setSnackbarMessage('Đăng nhập thành công!');
           setShowSnackbar(true);

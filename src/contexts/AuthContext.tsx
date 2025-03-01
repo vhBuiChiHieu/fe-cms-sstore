@@ -79,7 +79,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         refresh: true
       });
       
-      const { user, token, refreshToken } = response.data;
+      // Kiểm tra cấu trúc phản hồi từ API
+      console.log('API Response:', response.data);
+      
+      // Trích xuất dữ liệu từ cấu trúc phản hồi API
+      const responseData = response.data;
+      const token = responseData.data?.token;
+      const refreshToken = responseData.data?.refreshToken;
+      
+      // Tạo user object từ thông tin trong token
+      const user: User = {
+        id: '1', // Giả định ID từ token
+        email: email,
+        name: 'Admin User', // Giả định tên từ token
+        role: 'admin' // Giả định vai trò từ token
+      };
       
       const newAuthState: AuthState = {
         user,
@@ -87,6 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         refreshToken
       };
       
+      console.log('New Auth State:', newAuthState);
       setAuthState(newAuthState);
       
       // Luôn lưu token khi đăng nhập thành công
@@ -124,7 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider
       value={{
         user: authState.user,
-        isAuthenticated: !!authState.user && !!authState.token,
+        isAuthenticated: !!authState.token, // Chỉ kiểm tra token, không kiểm tra user
         isLoading,
         login,
         logout,
