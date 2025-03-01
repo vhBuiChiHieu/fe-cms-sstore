@@ -42,7 +42,7 @@ import {
   ArrowBackIosNew as ArrowBackIosNewIcon,
   ArrowForwardIos as ArrowForwardIosIcon
 } from '@mui/icons-material';
-import { getAccounts, Account, AccountListParams, deleteAccount } from '../../services/accountService';
+import { getAccounts, Account, AccountListParams, deleteAccount, changeAccountStatus } from '../../services/accountService';
 import { getRoles, Role } from '../../services/roleService';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -63,6 +63,9 @@ const AccountsPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState<boolean>(false);
+  const [accountToChangeStatus, setAccountToChangeStatus] = useState<{id: string, currentStatus: string} | null>(null);
+  const [statusLoading, setStatusLoading] = useState<boolean>(false);
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -235,6 +238,50 @@ const AccountsPage: React.FC = () => {
     setAccountToDelete(null);
   };
 
+  const handleLockClick = (account: Account) => {
+    setAccountToChangeStatus({
+      id: account.id,
+      currentStatus: account.status
+    });
+    setStatusDialogOpen(true);
+  };
+
+  const handleCloseStatusDialog = () => {
+    setStatusDialogOpen(false);
+    setAccountToChangeStatus(null);
+  };
+
+  const handleConfirmStatusChange = async () => {
+    if (!accountToChangeStatus) return;
+    
+    setStatusLoading(true);
+    try {
+      // Nếu tài khoản đang active, khóa tài khoản (status = 2)
+      // Nếu tài khoản đang locked, mở khóa tài khoản (status = 0)
+      const newStatus = accountToChangeStatus.currentStatus === 'active' ? 2 : 0;
+      const success = await changeAccountStatus(accountToChangeStatus.id, newStatus);
+      
+      if (success) {
+        setSuccessMessage(
+          newStatus === 2 
+            ? `Đã khóa tài khoản thành công` 
+            : `Đã mở khóa tài khoản thành công`
+        );
+        // Cập nhật lại danh sách tài khoản
+        fetchAccounts();
+      } else {
+        setError('Không thể thay đổi trạng thái tài khoản. Vui lòng thử lại sau.');
+      }
+    } catch (error) {
+      console.error('Lỗi khi thay đổi trạng thái tài khoản:', error);
+      setError('Đã xảy ra lỗi khi thay đổi trạng thái tài khoản.');
+    } finally {
+      setStatusLoading(false);
+      setStatusDialogOpen(false);
+      setAccountToChangeStatus(null);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (!accountToDelete) return;
     
@@ -404,13 +451,21 @@ const AccountsPage: React.FC = () => {
                           </Tooltip>
                           {account.status === 'active' ? (
                             <Tooltip title="Khóa tài khoản">
-                              <IconButton size="small" color="warning" onClick={() => console.log('Lock', account.id)}>
+                              <IconButton 
+                                size="small" 
+                                color="warning" 
+                                onClick={() => handleLockClick(account)}
+                              >
                                 <LockIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
                           ) : (
                             <Tooltip title="Mở khóa tài khoản">
-                              <IconButton size="small" color="success" onClick={() => console.log('Unlock', account.id)}>
+                              <IconButton 
+                                size="small" 
+                                color="success" 
+                                onClick={() => handleLockClick(account)}
+                              >
                                 <LockOpenIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
@@ -537,6 +592,41 @@ const AccountsPage: React.FC = () => {
             startIcon={deleteLoading ? <CircularProgress size={20} color="inherit" /> : null}
           >
             {deleteLoading ? 'Đang xóa...' : 'Xóa'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog xác nhận thay đổi trạng thái tài khoản */}
+      <Dialog
+        open={statusDialogOpen}
+        onClose={handleCloseStatusDialog}
+      >
+        <DialogTitle>
+          {accountToChangeStatus?.currentStatus === 'active' 
+            ? 'Xác nhận khóa tài khoản' 
+            : 'Xác nhận mở khóa tài khoản'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {accountToChangeStatus?.currentStatus === 'active'
+              ? 'Bạn có chắc chắn muốn khóa tài khoản này? Người dùng sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa.'
+              : 'Bạn có chắc chắn muốn mở khóa tài khoản này? Người dùng sẽ có thể đăng nhập lại vào hệ thống.'}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseStatusDialog} color="primary">
+            Hủy
+          </Button>
+          <Button 
+            onClick={handleConfirmStatusChange} 
+            color={accountToChangeStatus?.currentStatus === 'active' ? 'warning' : 'success'}
+            variant="contained" 
+            disabled={statusLoading}
+            startIcon={statusLoading ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {statusLoading 
+              ? 'Đang xử lý...' 
+              : (accountToChangeStatus?.currentStatus === 'active' ? 'Khóa' : 'Mở khóa')}
           </Button>
         </DialogActions>
       </Dialog>

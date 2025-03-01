@@ -112,6 +112,30 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
 };
 
 /**
+ * Thay đổi trạng thái tài khoản
+ * @param accountId ID của tài khoản cần thay đổi trạng thái
+ * @param status Trạng thái mới (0: active, 1: inactive, 2: locked)
+ */
+export const changeAccountStatus = async (accountId: string, status: number): Promise<boolean> => {
+  try {
+    const response = await axios.put(`${BASE_URL}/api/account/change-status/${accountId}`, 
+      { status }, 
+      {
+        headers: {
+          'Authorization': `Bearer ${TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return response.status === 200;
+  } catch (error) {
+    console.error('Error changing account status:', error);
+    return false;
+  }
+};
+
+/**
  * Xóa tài khoản
  * @param accountId ID của tài khoản cần xóa
  */
@@ -119,20 +143,13 @@ export const deleteAccount = async (accountId: string): Promise<boolean> => {
   try {
     const response = await axios.delete(`${BASE_URL}/api/account/${accountId}`, {
       headers: {
-        Authorization: `Bearer ${TOKEN}`
+        'Authorization': `Bearer ${TOKEN}`
       }
     });
     
-    console.log('API delete account response:', response.data);
-    
-    // Kiểm tra response từ API
-    if (response.status === 200 || response.status === 204) {
-      return true;
-    }
-    
-    return false;
+    return response.status === 200;
   } catch (error) {
-    console.error('Lỗi khi xóa tài khoản:', error);
+    console.error('Error deleting account:', error);
     return false;
   }
 };
