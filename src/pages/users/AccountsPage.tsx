@@ -179,7 +179,7 @@ const AccountsPage: React.FC = () => {
     fetchAccounts();
   };
 
-  const mapStatusToString = (statusValue: number | string): string => {
+  const mapStatusToString = (statusValue: number | string | undefined | null): string => {
     if (statusValue === undefined || statusValue === null) {
       return 'unknown';
     }
@@ -694,21 +694,21 @@ const AccountsPage: React.FC = () => {
         onClose={handleCloseStatusDialog}
       >
         <DialogTitle>
-          {mapStatusToString(accountToChangeStatus?.currentStatus) === 'active' 
+          {accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'active' 
             ? 'Xác nhận khóa tài khoản' 
-            : mapStatusToString(accountToChangeStatus?.currentStatus) === 'locked'
+            : accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'locked'
               ? 'Xác nhận mở khóa tài khoản'
-              : mapStatusToString(accountToChangeStatus?.currentStatus) === 'inactive'
+              : accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'inactive'
                 ? 'Xác nhận kích hoạt tài khoản'
                 : 'Xác nhận thay đổi trạng thái tài khoản'}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {mapStatusToString(accountToChangeStatus?.currentStatus) === 'active'
+            {accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'active'
               ? 'Bạn có chắc chắn muốn khóa tài khoản này? Người dùng sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa.'
-              : mapStatusToString(accountToChangeStatus?.currentStatus) === 'locked'
+              : accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'locked'
                 ? 'Bạn có chắc chắn muốn mở khóa tài khoản này? Người dùng sẽ có thể đăng nhập lại vào hệ thống.'
-                : mapStatusToString(accountToChangeStatus?.currentStatus) === 'inactive'
+                : accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'inactive'
                   ? 'Bạn có chắc chắn muốn kích hoạt tài khoản này? Người dùng sẽ có thể đăng nhập vào hệ thống.'
                   : 'Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này?'}
           </DialogContentText>
@@ -719,7 +719,7 @@ const AccountsPage: React.FC = () => {
           </Button>
           <Button 
             onClick={handleConfirmStatusChange} 
-            color={mapStatusToString(accountToChangeStatus?.currentStatus) === 'active' 
+            color={accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'active' 
               ? 'warning' 
               : 'success'}
             variant="contained" 
@@ -728,11 +728,11 @@ const AccountsPage: React.FC = () => {
           >
             {statusLoading 
               ? 'Đang xử lý...' 
-              : (mapStatusToString(accountToChangeStatus?.currentStatus) === 'active' 
+              : (accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'active' 
                 ? 'Khóa' 
-                : mapStatusToString(accountToChangeStatus?.currentStatus) === 'locked'
+                : accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'locked'
                   ? 'Mở khóa'
-                  : mapStatusToString(accountToChangeStatus?.currentStatus) === 'inactive'
+                  : accountToChangeStatus && mapStatusToString(accountToChangeStatus.currentStatus) === 'inactive'
                     ? 'Kích hoạt'
                     : 'Xác nhận')}
           </Button>
