@@ -40,7 +40,8 @@ import {
   Add as AddIcon,
   Refresh as RefreshIcon,
   ArrowBackIosNew as ArrowBackIosNewIcon,
-  ArrowForwardIos as ArrowForwardIosIcon
+  ArrowForwardIos as ArrowForwardIosIcon,
+  CheckCircleOutline as CheckCircleOutlineIcon
 } from '@mui/icons-material';
 import { getAccounts, Account, AccountListParams, deleteAccount, changeAccountStatus } from '../../services/accountService';
 import { getRoles, Role } from '../../services/roleService';
@@ -178,18 +179,44 @@ const AccountsPage: React.FC = () => {
     fetchAccounts();
   };
 
-  const getStatusChip = (status: string) => {
-    if (!status) return <Chip label="N/A" size="small" />;
-    
-    switch (status.toLowerCase()) {
+  const getStatusLabel = (status: string) => {
+    switch (status) {
       case 'active':
-        return <Chip label="Hoạt động" color="success" size="small" />;
+        return (
+          <Chip 
+            label="Hoạt động" 
+            color="success" 
+            size="small" 
+            sx={{ fontWeight: 500 }} 
+          />
+        );
       case 'inactive':
-        return <Chip label="Không hoạt động" color="default" size="small" />;
+        return (
+          <Chip 
+            label="Chưa kích hoạt" 
+            color="warning" 
+            size="small" 
+            sx={{ fontWeight: 500 }} 
+          />
+        );
       case 'locked':
-        return <Chip label="Đã khóa" color="error" size="small" />;
+        return (
+          <Chip 
+            label="Đã khóa" 
+            color="error" 
+            size="small" 
+            sx={{ fontWeight: 500 }} 
+          />
+        );
       default:
-        return <Chip label={status} size="small" />;
+        return (
+          <Chip 
+            label="Không xác định" 
+            color="default" 
+            size="small" 
+            sx={{ fontWeight: 500 }} 
+          />
+        );
     }
   };
 
@@ -256,17 +283,40 @@ const AccountsPage: React.FC = () => {
     
     setStatusLoading(true);
     try {
-      // Nếu tài khoản đang active, khóa tài khoản (status = 2)
-      // Nếu tài khoản đang locked, mở khóa tài khoản (status = 0)
-      const newStatus = accountToChangeStatus.currentStatus === 'active' ? 2 : 0;
+      // Xác định trạng thái mới dựa trên trạng thái hiện tại
+      let newStatus: number;
+      
+      if (accountToChangeStatus.currentStatus === 'active') {
+        // Nếu tài khoản đang hoạt động, khóa tài khoản (status = 2)
+        newStatus = 2;
+      } else if (accountToChangeStatus.currentStatus === 'locked') {
+        // Nếu tài khoản đang bị khóa, mở khóa tài khoản (status = 0)
+        newStatus = 0;
+      } else if (accountToChangeStatus.currentStatus === 'inactive') {
+        // Nếu tài khoản chưa kích hoạt, kích hoạt tài khoản (status = 0)
+        newStatus = 0;
+      } else {
+        // Trường hợp không xác định, mặc định mở khóa (status = 0)
+        newStatus = 0;
+      }
+      
       const success = await changeAccountStatus(accountToChangeStatus.id, newStatus);
       
       if (success) {
-        setSuccessMessage(
-          newStatus === 2 
-            ? `Đã khóa tài khoản thành công` 
-            : `Đã mở khóa tài khoản thành công`
-        );
+        let successMessage = '';
+        if (newStatus === 2) {
+          successMessage = 'Đã khóa tài khoản thành công';
+        } else if (newStatus === 0) {
+          if (accountToChangeStatus.currentStatus === 'locked') {
+            successMessage = 'Đã mở khóa tài khoản thành công';
+          } else if (accountToChangeStatus.currentStatus === 'inactive') {
+            successMessage = 'Đã kích hoạt tài khoản thành công';
+          } else {
+            successMessage = 'Đã cập nhật trạng thái tài khoản thành công';
+          }
+        }
+        
+        setSuccessMessage(successMessage);
         // Cập nhật lại danh sách tài khoản
         fetchAccounts();
       } else {
@@ -352,7 +402,7 @@ const AccountsPage: React.FC = () => {
               >
                 <MenuItem value="">Tất cả</MenuItem>
                 <MenuItem value="active">Hoạt động</MenuItem>
-                <MenuItem value="inactive">Không hoạt động</MenuItem>
+                <MenuItem value="inactive">Chưa kích hoạt</MenuItem>
                 <MenuItem value="locked">Đã khóa</MenuItem>
               </Select>
             </FormControl>
@@ -439,7 +489,7 @@ const AccountsPage: React.FC = () => {
                       <TableCell>{account.email}</TableCell>
                       <TableCell>{account.fullName}</TableCell>
                       <TableCell>{getRoleChip(account.role)}</TableCell>
-                      <TableCell>{getStatusChip(account.status)}</TableCell>
+                      <TableCell>{getStatusLabel(account.status)}</TableCell>
                       <TableCell>{formatDate(account.createdAt)}</TableCell>
                       <TableCell>{formatDate(account.lastLogin)}</TableCell>
                       <TableCell align="center">
@@ -459,7 +509,7 @@ const AccountsPage: React.FC = () => {
                                 <LockIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                          ) : (
+                          ) : account.status === 'locked' ? (
                             <Tooltip title="Mở khóa tài khoản">
                               <IconButton 
                                 size="small" 
@@ -469,7 +519,17 @@ const AccountsPage: React.FC = () => {
                                 <LockOpenIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                          )}
+                          ) : account.status === 'inactive' ? (
+                            <Tooltip title="Kích hoạt tài khoản">
+                              <IconButton 
+                                size="small" 
+                                color="success" 
+                                onClick={() => handleLockClick(account)}
+                              >
+                                <CheckCircleOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : null}
                           <Tooltip title="Xóa">
                             <IconButton 
                               size="small" 
@@ -604,13 +664,21 @@ const AccountsPage: React.FC = () => {
         <DialogTitle>
           {accountToChangeStatus?.currentStatus === 'active' 
             ? 'Xác nhận khóa tài khoản' 
-            : 'Xác nhận mở khóa tài khoản'}
+            : accountToChangeStatus?.currentStatus === 'locked'
+              ? 'Xác nhận mở khóa tài khoản'
+              : accountToChangeStatus?.currentStatus === 'inactive'
+                ? 'Xác nhận kích hoạt tài khoản'
+                : 'Xác nhận thay đổi trạng thái tài khoản'}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
             {accountToChangeStatus?.currentStatus === 'active'
               ? 'Bạn có chắc chắn muốn khóa tài khoản này? Người dùng sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa.'
-              : 'Bạn có chắc chắn muốn mở khóa tài khoản này? Người dùng sẽ có thể đăng nhập lại vào hệ thống.'}
+              : accountToChangeStatus?.currentStatus === 'locked'
+                ? 'Bạn có chắc chắn muốn mở khóa tài khoản này? Người dùng sẽ có thể đăng nhập lại vào hệ thống.'
+                : accountToChangeStatus?.currentStatus === 'inactive'
+                  ? 'Bạn có chắc chắn muốn kích hoạt tài khoản này? Người dùng sẽ có thể đăng nhập vào hệ thống.'
+                  : 'Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này?'}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -619,14 +687,22 @@ const AccountsPage: React.FC = () => {
           </Button>
           <Button 
             onClick={handleConfirmStatusChange} 
-            color={accountToChangeStatus?.currentStatus === 'active' ? 'warning' : 'success'}
+            color={accountToChangeStatus?.currentStatus === 'active' 
+              ? 'warning' 
+              : 'success'}
             variant="contained" 
             disabled={statusLoading}
             startIcon={statusLoading ? <CircularProgress size={20} color="inherit" /> : null}
           >
             {statusLoading 
               ? 'Đang xử lý...' 
-              : (accountToChangeStatus?.currentStatus === 'active' ? 'Khóa' : 'Mở khóa')}
+              : (accountToChangeStatus?.currentStatus === 'active' 
+                ? 'Khóa' 
+                : accountToChangeStatus?.currentStatus === 'locked'
+                  ? 'Mở khóa'
+                  : accountToChangeStatus?.currentStatus === 'inactive'
+                    ? 'Kích hoạt'
+                    : 'Xác nhận')}
           </Button>
         </DialogActions>
       </Dialog>

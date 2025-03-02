@@ -114,7 +114,10 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
 /**
  * Thay đổi trạng thái của tài khoản
  * @param accountId ID của tài khoản cần thay đổi trạng thái
- * @param status Trạng thái mới (0: active, 2: locked)
+ * @param status Trạng thái mới:
+ *   - 0: Hoạt động (active)
+ *   - 1: Chưa kích hoạt (inactive)
+ *   - 2: Đã khóa (locked)
  * @returns true nếu thành công, false nếu thất bại
  */
 export const changeAccountStatus = async (accountId: string, status: number): Promise<boolean> => {
