@@ -112,18 +112,19 @@ export const getAccounts = async (params: AccountListParams): Promise<AccountLis
 };
 
 /**
- * Thay đổi trạng thái tài khoản
+ * Thay đổi trạng thái của tài khoản
  * @param accountId ID của tài khoản cần thay đổi trạng thái
- * @param status Trạng thái mới (0: active, 1: inactive, 2: locked)
+ * @param status Trạng thái mới (0: active, 2: locked)
+ * @returns true nếu thành công, false nếu thất bại
  */
 export const changeAccountStatus = async (accountId: string, status: number): Promise<boolean> => {
   try {
-    const response = await axios.put(`${BASE_URL}/api/account/change-status/${accountId}`, 
-      { status }, 
+    const response = await axios.put(
+      `${BASE_URL}/api/account/change-status/${accountId}?status=${status}`, 
+      {}, // empty body
       {
         headers: {
-          'Authorization': `Bearer ${TOKEN}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${TOKEN}`
         }
       }
     );
