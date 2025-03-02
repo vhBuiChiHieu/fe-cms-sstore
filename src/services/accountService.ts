@@ -10,7 +10,7 @@ export interface Account {
   email: string;
   fullName: string;
   role: string;
-  status: 'active' | 'inactive' | 'locked';
+  status: string | number; // Có thể là string hoặc number
   createdAt: string;
   lastLogin: string;
 }

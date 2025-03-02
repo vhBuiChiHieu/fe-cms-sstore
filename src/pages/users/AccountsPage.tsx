@@ -179,8 +179,33 @@ const AccountsPage: React.FC = () => {
     fetchAccounts();
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
+  const mapStatusToString = (statusValue: number | string): string => {
+    if (statusValue === undefined || statusValue === null) {
+      return 'unknown';
+    }
+    
+    if (typeof statusValue === 'string') {
+      return statusValue.toLowerCase(); // Đảm bảo chuỗi ở dạng lowercase
+    }
+    
+    // Chuyển đổi từ số sang chuỗi
+    switch (statusValue) {
+      case 0:
+        return 'active';
+      case 1:
+        return 'inactive';
+      case 2:
+        return 'locked';
+      default:
+        return 'unknown';
+    }
+  };
+
+  const getStatusLabel = (status: string | number) => {
+    // Đảm bảo status là chuỗi
+    const statusString = mapStatusToString(status);
+    
+    switch (statusString) {
       case 'active':
         return (
           <Chip 
@@ -266,9 +291,14 @@ const AccountsPage: React.FC = () => {
   };
 
   const handleLockClick = (account: Account) => {
+    if (!account || !account.id) return;
+    
+    // Đảm bảo status là chuỗi
+    const currentStatus = mapStatusToString(account.status);
+    
     setAccountToChangeStatus({
       id: account.id,
-      currentStatus: account.status
+      currentStatus: currentStatus
     });
     setStatusDialogOpen(true);
   };
@@ -286,13 +316,15 @@ const AccountsPage: React.FC = () => {
       // Xác định trạng thái mới dựa trên trạng thái hiện tại
       let newStatus: number;
       
-      if (accountToChangeStatus.currentStatus === 'active') {
+      const currentStatus = mapStatusToString(accountToChangeStatus.currentStatus);
+      
+      if (currentStatus === 'active') {
         // Nếu tài khoản đang hoạt động, khóa tài khoản (status = 2)
         newStatus = 2;
-      } else if (accountToChangeStatus.currentStatus === 'locked') {
+      } else if (currentStatus === 'locked') {
         // Nếu tài khoản đang bị khóa, mở khóa tài khoản (status = 0)
         newStatus = 0;
-      } else if (accountToChangeStatus.currentStatus === 'inactive') {
+      } else if (currentStatus === 'inactive') {
         // Nếu tài khoản chưa kích hoạt, kích hoạt tài khoản (status = 0)
         newStatus = 0;
       } else {
@@ -307,9 +339,9 @@ const AccountsPage: React.FC = () => {
         if (newStatus === 2) {
           successMessage = 'Đã khóa tài khoản thành công';
         } else if (newStatus === 0) {
-          if (accountToChangeStatus.currentStatus === 'locked') {
+          if (currentStatus === 'locked') {
             successMessage = 'Đã mở khóa tài khoản thành công';
-          } else if (accountToChangeStatus.currentStatus === 'inactive') {
+          } else if (currentStatus === 'inactive') {
             successMessage = 'Đã kích hoạt tài khoản thành công';
           } else {
             successMessage = 'Đã cập nhật trạng thái tài khoản thành công';
@@ -499,7 +531,7 @@ const AccountsPage: React.FC = () => {
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          {account.status === 'active' ? (
+                          {mapStatusToString(account.status) === 'active' ? (
                             <Tooltip title="Khóa tài khoản">
                               <IconButton 
                                 size="small" 
@@ -509,7 +541,7 @@ const AccountsPage: React.FC = () => {
                                 <LockIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                          ) : account.status === 'locked' ? (
+                          ) : mapStatusToString(account.status) === 'locked' ? (
                             <Tooltip title="Mở khóa tài khoản">
                               <IconButton 
                                 size="small" 
@@ -519,7 +551,7 @@ const AccountsPage: React.FC = () => {
                                 <LockOpenIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                          ) : account.status === 'inactive' ? (
+                          ) : mapStatusToString(account.status) === 'inactive' ? (
                             <Tooltip title="Kích hoạt tài khoản">
                               <IconButton 
                                 size="small" 
@@ -662,21 +694,21 @@ const AccountsPage: React.FC = () => {
         onClose={handleCloseStatusDialog}
       >
         <DialogTitle>
-          {accountToChangeStatus?.currentStatus === 'active' 
+          {mapStatusToString(accountToChangeStatus?.currentStatus) === 'active' 
             ? 'Xác nhận khóa tài khoản' 
-            : accountToChangeStatus?.currentStatus === 'locked'
+            : mapStatusToString(accountToChangeStatus?.currentStatus) === 'locked'
               ? 'Xác nhận mở khóa tài khoản'
-              : accountToChangeStatus?.currentStatus === 'inactive'
+              : mapStatusToString(accountToChangeStatus?.currentStatus) === 'inactive'
                 ? 'Xác nhận kích hoạt tài khoản'
                 : 'Xác nhận thay đổi trạng thái tài khoản'}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {accountToChangeStatus?.currentStatus === 'active'
+            {mapStatusToString(accountToChangeStatus?.currentStatus) === 'active'
               ? 'Bạn có chắc chắn muốn khóa tài khoản này? Người dùng sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa.'
-              : accountToChangeStatus?.currentStatus === 'locked'
+              : mapStatusToString(accountToChangeStatus?.currentStatus) === 'locked'
                 ? 'Bạn có chắc chắn muốn mở khóa tài khoản này? Người dùng sẽ có thể đăng nhập lại vào hệ thống.'
-                : accountToChangeStatus?.currentStatus === 'inactive'
+                : mapStatusToString(accountToChangeStatus?.currentStatus) === 'inactive'
                   ? 'Bạn có chắc chắn muốn kích hoạt tài khoản này? Người dùng sẽ có thể đăng nhập vào hệ thống.'
                   : 'Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này?'}
           </DialogContentText>
@@ -687,7 +719,7 @@ const AccountsPage: React.FC = () => {
           </Button>
           <Button 
             onClick={handleConfirmStatusChange} 
-            color={accountToChangeStatus?.currentStatus === 'active' 
+            color={mapStatusToString(accountToChangeStatus?.currentStatus) === 'active' 
               ? 'warning' 
               : 'success'}
             variant="contained" 
@@ -696,11 +728,11 @@ const AccountsPage: React.FC = () => {
           >
             {statusLoading 
               ? 'Đang xử lý...' 
-              : (accountToChangeStatus?.currentStatus === 'active' 
+              : (mapStatusToString(accountToChangeStatus?.currentStatus) === 'active' 
                 ? 'Khóa' 
-                : accountToChangeStatus?.currentStatus === 'locked'
+                : mapStatusToString(accountToChangeStatus?.currentStatus) === 'locked'
                   ? 'Mở khóa'
-                  : accountToChangeStatus?.currentStatus === 'inactive'
+                  : mapStatusToString(accountToChangeStatus?.currentStatus) === 'inactive'
                     ? 'Kích hoạt'
                     : 'Xác nhận')}
           </Button>
