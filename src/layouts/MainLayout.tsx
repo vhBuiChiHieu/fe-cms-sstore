@@ -1,5 +1,5 @@
 //cSpell:disable
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AppBar, 
   Box, 
@@ -19,7 +19,8 @@ import {
   MenuItem,
   Badge,
   Tooltip,
-  Collapse
+  Collapse,
+  CircularProgress
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -43,13 +44,45 @@ import {
   Business as BusinessIcon,
   ViewList as ViewListIcon,
   ShoppingBasket as ShoppingBasketIcon,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
+  Security as SecurityIcon,
+  Home as HomeIcon,
+  VpnKey as VpnKeyIcon
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ProfileDialog from '../components/ProfileDialog';
+import CartMenu from '../components/CartMenu';
+import accountService, { UserProfile } from '../services/accountService';
+import cartService from '../services/cartService';
+import permissionService, { Permission } from '../services/permissionService';
+import logger from '../utils/logger';
+import { BASE_URL } from '../utils/config';
+import axios from 'axios';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 64;
+
+interface DynamicSubMenuItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+}
+
+interface SubMenuItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+  dynamicSubItems?: DynamicSubMenuItem[];
+}
+
+interface MenuItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+  subItems?: SubMenuItem[];
+}
 
 interface MainLayoutProps {
   window?: () => Window;
@@ -62,8 +95,99 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [cartAnchorEl, setCartAnchorEl] = useState<null | HTMLElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [cartCount, setCartCount] = useState<number>(0);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false);
+
+  // Fetch profile khi component mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const data = await accountService.getProfile();
+        setUserProfile(data);
+        
+        // Nếu có avatar, tải ảnh với token
+        if (data && data.avatar) {
+          const token = localStorage.getItem('authState') 
+            ? JSON.parse(localStorage.getItem('authState') || '{}').token 
+            : '';
+          
+          if (token) {
+            try {
+              const response = await axios.get(`${BASE_URL}/api/file/${data.avatar}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                },
+                responseType: 'blob'
+              });
+              
+              // Tạo URL từ blob
+              const url = URL.createObjectURL(response.data);
+              setAvatarUrl(url);
+            } catch (error) {
+              logger.error('Lỗi khi tải avatar:', error);
+            }
+          }
+        }
+      } catch (err) {
+        logger.error('Lỗi khi tải thông tin profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+
+    // Cleanup URL khi component unmount
+    return () => {
+      if (avatarUrl) {
+        URL.revokeObjectURL(avatarUrl);
+      }
+    };
+  }, []);
+
+  // Lấy số lượng sản phẩm trong giỏ hàng
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      try {
+        const result = await cartService.getCarts({ pageIndex: 1, pageSize: 1 });
+        setCartCount(result.totalCount);
+      } catch (error) {
+        logger.error('Lỗi khi tải số lượng giỏ hàng:', error);
+      }
+    };
+
+    fetchCartCount();
+    // Có thể thêm interval để cập nhật số lượng giỏ hàng định kỳ
+    const interval = setInterval(fetchCartCount, 60000); // Cập nhật mỗi phút
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Lấy danh sách quyền hạn
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      try {
+        setLoadingPermissions(true);
+        const result = await permissionService.getPermissions({ pageIndex: 1, pageSize: 100 });
+        setPermissions(result.permissions);
+      } catch (error) {
+        logger.error('Lỗi khi tải danh sách quyền hạn:', error);
+      } finally {
+        setLoadingPermissions(false);
+      }
+    };
+
+    fetchPermissions();
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -81,8 +205,16 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
     setAnchorEl(event.currentTarget);
   };
 
+  const handleCartMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setCartAnchorEl(event.currentTarget);
+  };
+
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleCartMenuClose = () => {
+    setCartAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -92,10 +224,10 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
 
   const handleProfileClick = () => {
     handleMenuClose();
-    navigate('/settings/profile');
+    setProfileDialogOpen(true);
   };
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { 
       text: 'Người dùng', 
@@ -103,7 +235,13 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
       path: '/users',
       subItems: [
         { text: 'Tài khoản', icon: <AccountBoxIcon />, path: '/users/accounts' },
-        { text: 'Thông tin cá nhân', icon: <ContactPageIcon />, path: '/users/profiles' }
+        { text: 'Thông tin', icon: <ContactPageIcon />, path: '/users/profiles' },
+        { text: 'Vai trò', icon: <AdminPanelSettingsIcon />, path: '/users/roles' },
+        { 
+          text: 'Quyền hạn', 
+          icon: <SecurityIcon />, 
+          path: '/users/permissions'
+        }
       ]
     },
     { 
@@ -144,6 +282,8 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
     if (path.startsWith('/orders')) return 'Đơn hàng';
     if (path.startsWith('/users/accounts')) return 'Tài khoản người dùng';
     if (path.startsWith('/users/profiles')) return 'Thông tin cá nhân người dùng';
+    if (path.startsWith('/users/roles')) return 'Vai trò người dùng';
+    if (path.startsWith('/users/permissions')) return 'Phân quyền người dùng';
     if (path.startsWith('/users')) return 'Người dùng';
     if (path.startsWith('/reports')) return 'Báo cáo';
     if (path.startsWith('/settings')) return 'Cài đặt';
@@ -153,14 +293,39 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const drawer = (
     <div>
       <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
-        {!isCollapsed && (
-          <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold' }}>
-            S-STORE CMS
-          </Typography>
-        )}
-        <IconButton onClick={handleCollapseToggle}>
-          {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'flex-start', width: '100%' }}>
+          <HomeIcon 
+            sx={{ 
+              color: 'primary.main', 
+              mr: isCollapsed ? 0 : 1, 
+              fontSize: isCollapsed ? 32 : 28,
+              animation: 'pulse 2s infinite',
+              '@keyframes pulse': {
+                '0%': { opacity: 0.7 },
+                '50%': { opacity: 1 },
+                '100%': { opacity: 0.7 }
+              },
+              filter: isCollapsed ? 'drop-shadow(0 0 3px #2196F3)' : 'none'
+            }} 
+          />
+          {!isCollapsed && (
+            <Typography 
+              variant="h6" 
+              noWrap 
+              component="div" 
+              sx={{ 
+                fontWeight: 'bold',
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                letterSpacing: '0.5px',
+                fontSize: '1.3rem'
+              }}
+            >
+              S-STORE CMS
+            </Typography>
+          )}
+        </Box>
       </Toolbar>
       <Divider />
       <List>
@@ -208,18 +373,57 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
               <Collapse in={openSubMenu === item.text} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                   {item.subItems.map((subItem) => (
-                    <ListItem key={subItem.text} disablePadding>
-                      <ListItemButton 
-                        onClick={() => navigate(subItem.path)}
-                        selected={location.pathname.startsWith(subItem.path)}
-                        sx={{ pl: 4 }}
-                      >
-                        <ListItemIcon>
-                          {subItem.icon}
-                        </ListItemIcon>
-                        <ListItemText primary={subItem.text} />
-                      </ListItemButton>
-                    </ListItem>
+                    <React.Fragment key={subItem.text}>
+                      <ListItem disablePadding>
+                        <ListItemButton 
+                          onClick={() => {
+                            if ('dynamicSubItems' in subItem && subItem.dynamicSubItems) {
+                              handleSubMenuToggle(subItem.text);
+                            } else {
+                              navigate(subItem.path);
+                            }
+                          }}
+                          selected={location.pathname.startsWith(subItem.path)}
+                          sx={{ pl: 4 }}
+                        >
+                          <ListItemIcon>
+                            {subItem.icon}
+                          </ListItemIcon>
+                          <ListItemText primary={subItem.text} />
+                          {'dynamicSubItems' in subItem && subItem.dynamicSubItems && (
+                            openSubMenu === subItem.text ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                          )}
+                        </ListItemButton>
+                      </ListItem>
+                      
+                      {/* Hiển thị danh sách quyền hạn động */}
+                      {'dynamicSubItems' in subItem && subItem.dynamicSubItems && (
+                        <Collapse in={openSubMenu === subItem.text} timeout="auto" unmountOnExit>
+                          <List component="div" disablePadding>
+                            {subItem.dynamicSubItems.map((dynamicItem: DynamicSubMenuItem) => (
+                              <ListItem key={dynamicItem.text} disablePadding>
+                                <ListItemButton 
+                                  onClick={() => navigate(dynamicItem.path)}
+                                  selected={location.pathname.startsWith(dynamicItem.path) && location.search.includes(dynamicItem.path.split('?')[1] || '')}
+                                  sx={{ pl: 6 }}
+                                >
+                                  <ListItemIcon>
+                                    {dynamicItem.icon}
+                                  </ListItemIcon>
+                                  <ListItemText 
+                                    primary={dynamicItem.text} 
+                                    primaryTypographyProps={{ 
+                                      noWrap: true, 
+                                      sx: { fontSize: '0.85rem' } 
+                                    }}
+                                  />
+                                </ListItemButton>
+                              </ListItem>
+                            ))}
+                          </List>
+                        </Collapse>
+                      )}
+                    </React.Fragment>
                   ))}
                 </List>
               </Collapse>
@@ -255,9 +459,25 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
           >
             <MenuIcon />
           </IconButton>
+          <IconButton
+            color="inherit"
+            aria-label="toggle drawer collapse"
+            onClick={handleCollapseToggle}
+            sx={{ mr: 2, display: { xs: 'none', sm: 'flex' } }}
+          >
+            {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+          </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {getPageTitle()}
           </Typography>
+          <IconButton 
+            color="inherit"
+            onClick={handleCartMenuOpen}
+          >
+            <Badge badgeContent={cartCount} color="error">
+              <ShoppingCartIcon />
+            </Badge>
+          </IconButton>
           <IconButton color="inherit">
             <Badge badgeContent={4} color="error">
               <NotificationsIcon />
@@ -272,7 +492,26 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             color="inherit"
           >
             <Avatar sx={{ width: 32, height: 32 }}>
-              {user?.name ? user.name.charAt(0) : 'A'}
+              {avatarUrl ? (
+                <img 
+                  src={avatarUrl} 
+                  alt="Avatar"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover'
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                userProfile?.firstName 
+                  ? userProfile.firstName.charAt(0) 
+                  : user?.name 
+                    ? user.name.charAt(0) 
+                    : 'A'
+              )}
             </Avatar>
           </IconButton>
           <Menu
@@ -359,6 +598,14 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
       >
         <Outlet />
       </Box>
+      <ProfileDialog 
+        open={profileDialogOpen} 
+        onClose={() => setProfileDialogOpen(false)} 
+      />
+      <CartMenu
+        anchorEl={cartAnchorEl}
+        onClose={handleCartMenuClose}
+      />
     </Box>
   );
 };

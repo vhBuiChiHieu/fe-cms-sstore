@@ -56,6 +56,19 @@
 - [x] Tạo trang quản lý vai trò người dùng với chức năng xem danh sách và phân trang
 - [x] Thêm chức năng xem chi tiết vai trò và danh sách quyền
 - [x] Cải thiện giao diện chi tiết vai trò (RoleDetailDialog) với thiết kế hiện đại và trực quan hơn
+- [x] Thêm menu giỏ hàng vào layout chính với chức năng xem danh sách và xóa sản phẩm
+- [x] Tạo trang quản lý giỏ hàng với chức năng xem danh sách và quản lý giỏ hàng
+- [x] Tạo service cartService.ts
+- [x] Tạo component CartMenu.tsx
+- [x] Tích hợp CartMenu vào MainLayout
+- [x] Tạo trang CartsPage.tsx để hiển thị và quản lý giỏ hàng
+- [x] Cập nhật Dashboard để lấy tổng số khách hàng từ API thay vì giá trị mặc định
+- [x] Lấy thống kê tài khoản từ API
+- [x] Tạo trang quản lý quyền hạn với chức năng xem danh sách, tạo, sửa và xóa quyền
+- [x] Tạo service permissionService để gọi API quyền hạn
+- [x] Sửa lỗi menu Quyền hạn hiển thị submenu thay vì chuyển đến trang danh sách
+- [x] Cải thiện giao diện trang quyền hạn bằng cách bỏ cột trạng thái và ngày tạo
+- [x] Cập nhật dialog thêm quyền hạn để đánh dấu trường Tên quyền là bắt buộc
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản
@@ -70,6 +83,21 @@
   - [ ] Thêm chức năng xóa danh mục
 - [ ] Tạo trang quản lý sản phẩm
 - [ ] Tạo trang quản lý đơn hàng
+- [ ] Hoàn thiện chức năng quản lý giỏ hàng
+  - [x] Hiển thị menu giỏ hàng với danh sách sản phẩm
+  - [x] Thêm chức năng xóa sản phẩm khỏi giỏ hàng
+  - [x] Thêm chức năng xem chi tiết sản phẩm trong giỏ hàng
+  - [ ] Tạo trang quản lý giỏ hàng đầy đủ
+  - [ ] Cải thiện chức năng xóa mục giỏ hàng (cần kiểm tra lại API endpoint)
+  - [ ] Thêm chức năng cập nhật số lượng sản phẩm trong giỏ hàng
+  - [ ] Thêm chức năng chuyển giỏ hàng thành đơn hàng
+- [ ] Hoàn thiện chức năng quản lý quyền hạn
+  - [x] Hiển thị danh sách quyền hạn
+  - [x] Thêm chức năng tạo quyền hạn mới
+  - [x] Thêm chức năng chỉnh sửa quyền hạn
+  - [x] Thêm chức năng xóa quyền hạn
+  - [ ] Thêm chức năng phân quyền cho vai trò
+  - [ ] Thêm chức năng phân quyền cho người dùng
 
 ## Cần thực hiện
 - [ ] Phát triển các chức năng quản lý khác
@@ -78,7 +106,7 @@
   - [ ] Quản lý đơn hàng
   - [ ] Quản lý khách hàng
   - [x] Quản lý vai trò người dùng
-  - [ ] Quản lý phân quyền người dùng
+  - [x] Quản lý phân quyền người dùng
   - [ ] Quản lý khuyến mãi
   - [ ] Quản lý thanh toán
   - [ ] Quản lý vận chuyển
