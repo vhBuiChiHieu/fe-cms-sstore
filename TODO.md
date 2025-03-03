@@ -50,6 +50,7 @@
 - [x] Sửa lỗi hiển thị avatar trong dialog xem chi tiết tài khoản bằng cách thêm đường dẫn đầy đủ
 - [x] Cải thiện bảo mật khi tải avatar bằng cách sử dụng token trong header thay vì URL
 - [x] Xóa cột "Đăng nhập cuối" trong bảng danh sách tài khoản
+- [x] Loại bỏ các dòng console.error không cần thiết trong AccountsPage.tsx
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản
