@@ -36,6 +36,20 @@
 - [x] Thêm thuộc tính onAccountUpdated vào interface EditAccountDialogProps và cập nhật xử lý nút Submit
 - [x] Cập nhật hàm getAccounts để xử lý đúng cấu trúc dữ liệu từ API mới
 - [x] Sửa lỗi khi thay đổi số dòng hiển thị không cập nhật đúng pageSize trong API
+- [x] Thêm chức năng xem thông tin cá nhân từ avatar menu
+- [x] Sửa lỗi cú pháp và TypeScript trong ProfileDialog.tsx
+- [x] Cập nhật hiển thị avatar từ API khi trường avatar không null
+- [x] Cải thiện bảo mật khi tải avatar bằng cách sử dụng token trong header thay vì URL
+- [x] Tạo trang danh mục sản phẩm với chức năng xem danh sách
+- [x] Tạo service categoryService để gọi API danh mục
+- [x] Thêm route cho trang danh mục sản phẩm
+- [x] Cập nhật interface để phù hợp với dữ liệu API trả về
+- [x] Thêm chức năng tạo danh mục mới
+- [x] Cập nhật API phân trang danh mục sản phẩm với pageIndex bắt đầu từ 1
+- [x] Thêm chức năng lấy thông tin profile từ API và hiển thị avatar trong MainLayout
+- [x] Sửa lỗi hiển thị avatar trong dialog xem chi tiết tài khoản bằng cách thêm đường dẫn đầy đủ
+- [x] Cải thiện bảo mật khi tải avatar bằng cách sử dụng token trong header thay vì URL
+- [x] Xóa cột "Đăng nhập cuối" trong bảng danh sách tài khoản
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản
@@ -43,9 +57,13 @@
   - [ ] Tạo form chỉnh sửa tài khoản
   - [x] Xử lý khóa/mở khóa tài khoản
   - [x] Xử lý xóa tài khoản
+- [ ] Tạo trang quản lý danh mục sản phẩm
+  - [x] Hiển thị danh sách danh mục
+  - [x] Thêm chức năng tạo danh mục mới
+  - [ ] Thêm chức năng chỉnh sửa danh mục
+  - [ ] Thêm chức năng xóa danh mục
 - [ ] Tạo trang quản lý sản phẩm
 - [ ] Tạo trang quản lý đơn hàng
-- [ ] Tạo trang quản lý danh mục
 
 ## Cần thực hiện
 - [ ] Phát triển các chức năng quản lý khác

@@ -20,7 +20,8 @@ import {
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
   Refresh as RefreshIcon,
-  CheckCircleOutline as CheckCircleOutlineIcon
+  CheckCircleOutline as CheckCircleOutlineIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { Account } from '../../../services/accountService';
 import { format } from 'date-fns';
@@ -35,6 +36,7 @@ interface AccountsTableProps {
   onLockClick: (account: Account) => void;
   onUnlockClick: (account: Account) => void;
   onActivateClick: (account: Account) => void;
+  onViewClick: (account: Account) => void;
   onRefresh: () => void;
 }
 
@@ -47,6 +49,7 @@ const AccountsTable: React.FC<AccountsTableProps> = ({
   onLockClick,
   onUnlockClick,
   onActivateClick,
+  onViewClick,
   onRefresh
 }) => {
   // Hàm format ngày tháng
@@ -117,14 +120,13 @@ const AccountsTable: React.FC<AccountsTableProps> = ({
             <TableCell>Vai trò</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell>Ngày tạo</TableCell>
-            <TableCell>Đăng nhập cuối</TableCell>
             <TableCell align="center">Thao tác</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+              <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                 <CircularProgress />
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   Đang tải dữ liệu...
@@ -133,7 +135,7 @@ const AccountsTable: React.FC<AccountsTableProps> = ({
             </TableRow>
           ) : error ? (
             <TableRow>
-              <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+              <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                 <Typography variant="body1" color="error">
                   {error}
                 </Typography>
@@ -151,7 +153,7 @@ const AccountsTable: React.FC<AccountsTableProps> = ({
             </TableRow>
           ) : !accounts || accounts.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+              <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
                 <Typography variant="body1">
                   Không tìm thấy dữ liệu
                 </Typography>
@@ -169,9 +171,17 @@ const AccountsTable: React.FC<AccountsTableProps> = ({
                 <TableCell>{getRoleChip(account.role)}</TableCell>
                 <TableCell>{getStatusLabel(account.status)}</TableCell>
                 <TableCell>{formatDate(account.createdAt)}</TableCell>
-                <TableCell>{formatDate(account.lastLogin)}</TableCell>
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <Tooltip title="Xem chi tiết">
+                      <IconButton
+                        aria-label="view"
+                        color="info"
+                        onClick={() => onViewClick(account)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Chỉnh sửa">
                       <IconButton
                         aria-label="edit"
