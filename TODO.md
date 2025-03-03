@@ -1,3 +1,4 @@
+# cSpell:disable
 # TODO List cho dự án CMS S-Store
 
 ## Đã hoàn thành
@@ -51,6 +52,10 @@
 - [x] Cải thiện bảo mật khi tải avatar bằng cách sử dụng token trong header thay vì URL
 - [x] Xóa cột "Đăng nhập cuối" trong bảng danh sách tài khoản
 - [x] Loại bỏ các dòng console.error không cần thiết trong AccountsPage.tsx
+- [x] Thêm menu con "Vai trò" và "Phân Quyền" vào menu "Người dùng"
+- [x] Tạo trang quản lý vai trò người dùng với chức năng xem danh sách và phân trang
+- [x] Thêm chức năng xem chi tiết vai trò và danh sách quyền
+- [x] Cải thiện giao diện chi tiết vai trò (RoleDetailDialog) với thiết kế hiện đại và trực quan hơn
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản
@@ -72,6 +77,8 @@
   - [ ] Quản lý sản phẩm
   - [ ] Quản lý đơn hàng
   - [ ] Quản lý khách hàng
+  - [x] Quản lý vai trò người dùng
+  - [ ] Quản lý phân quyền người dùng
   - [ ] Quản lý khuyến mãi
   - [ ] Quản lý thanh toán
   - [ ] Quản lý vận chuyển
