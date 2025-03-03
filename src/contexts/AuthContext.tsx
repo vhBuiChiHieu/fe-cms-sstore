@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useNavigate } from 'react-router-dom';
 import { BASE_URL } from '../utils/config';
 import axios from 'axios';
+import logger from '../utils/logger';
 
 interface User {
   id: string;
@@ -49,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           setAuthState(JSON.parse(storedAuthState));
         } catch (error) {
-          console.error('Lỗi khi phân tích dữ liệu xác thực:', error);
+          logger.error('Lỗi khi phân tích dữ liệu xác thực:', error);
           localStorage.removeItem('authState');
         }
       }
@@ -69,8 +70,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [authState.token]);
 
   const login = async (email: string, password: string, rememberMe: boolean): Promise<boolean> => {
-    setIsLoading(true);
     setError(null);
+    setIsLoading(true);
     
     try {
       const response = await axios.post(`${BASE_URL}/api/auth/login`, {
@@ -80,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       // Kiểm tra cấu trúc phản hồi từ API
-      console.log('API Response:', response.data);
+      logger.debug('API Response:', response.data);
       
       // Trích xuất dữ liệu từ cấu trúc phản hồi API
       const responseData = response.data;
@@ -101,7 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         refreshToken
       };
       
-      console.log('New Auth State:', newAuthState);
+      logger.debug('New Auth State:', newAuthState);
       setAuthState(newAuthState);
       
       // Luôn lưu token khi đăng nhập thành công
@@ -110,7 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
       return true;
     } catch (error) {
-      console.error('Lỗi đăng nhập:', error);
+      logger.error('Lỗi đăng nhập:', error);
       
       if (axios.isAxiosError(error) && error.response) {
         // Xử lý lỗi từ API

@@ -1,3 +1,4 @@
+//cSpell:disable
 import React, { useState } from 'react';
 import { 
   AppBar, 
@@ -36,7 +37,13 @@ import {
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   AccountBox as AccountBoxIcon,
-  ContactPage as ContactPageIcon
+  ContactPage as ContactPageIcon,
+  Category as CategoryIcon,
+  Layers as LayersIcon,
+  Business as BusinessIcon,
+  ViewList as ViewListIcon,
+  ShoppingBasket as ShoppingBasketIcon,
+  Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -90,8 +97,6 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Sản phẩm', icon: <InventoryIcon />, path: '/products' },
-    { text: 'Đơn hàng', icon: <ShoppingCartIcon />, path: '/orders' },
     { 
       text: 'Người dùng', 
       icon: <PeopleIcon />, 
@@ -99,6 +104,26 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
       subItems: [
         { text: 'Tài khoản', icon: <AccountBoxIcon />, path: '/users/accounts' },
         { text: 'Thông tin cá nhân', icon: <ContactPageIcon />, path: '/users/profiles' }
+      ]
+    },
+    { 
+      text: 'Sản phẩm', 
+      icon: <InventoryIcon />, 
+      path: '/products',
+      subItems: [
+        { text: 'Loại Sản Phẩm', icon: <CategoryIcon />, path: '/products/types' },
+        { text: 'Biến Thể', icon: <LayersIcon />, path: '/products/variants' },
+        { text: 'Hãng', icon: <BusinessIcon />, path: '/products/brands' },
+        { text: 'Danh mục', icon: <ViewListIcon />, path: '/products/categories' }
+      ]
+    },
+    { 
+      text: 'Đặt hàng', 
+      icon: <ShoppingCartIcon />, 
+      path: '/orders',
+      subItems: [
+        { text: 'Giỏ Hàng', icon: <ShoppingBasketIcon />, path: '/orders/carts' },
+        { text: 'Đơn Hàng', icon: <ReceiptIcon />, path: '/orders/orders' }
       ]
     },
     { text: 'Báo cáo', icon: <AssessmentIcon />, path: '/reports' },
@@ -109,7 +134,13 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === '/') return 'Dashboard';
+    if (path.startsWith('/products/types')) return 'Loại Sản Phẩm';
+    if (path.startsWith('/products/variants')) return 'Biến Thể Sản Phẩm';
+    if (path.startsWith('/products/brands')) return 'Hãng Sản Phẩm';
+    if (path.startsWith('/products/categories')) return 'Danh Mục Sản Phẩm';
     if (path.startsWith('/products')) return 'Sản phẩm';
+    if (path.startsWith('/orders/carts')) return 'Giỏ Hàng';
+    if (path.startsWith('/orders/orders')) return 'Đơn Hàng';
     if (path.startsWith('/orders')) return 'Đơn hàng';
     if (path.startsWith('/users/accounts')) return 'Tài khoản người dùng';
     if (path.startsWith('/users/profiles')) return 'Thông tin cá nhân người dùng';

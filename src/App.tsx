@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import AppRoutes from './routes';
-import theme from './utils/theme';
+import theme from './theme';
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {

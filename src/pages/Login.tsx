@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logger from '../utils/logger';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const Login: React.FC = () => {
 
   // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang Dashboard
   useEffect(() => {
-    console.log('isAuthenticated changed:', isAuthenticated);
+    logger.debug('isAuthenticated changed:', isAuthenticated);
     if (isAuthenticated) {
       navigate('/dashboard');
     }
@@ -104,9 +105,9 @@ const Login: React.FC = () => {
     
     if (validateForm()) {
       try {
-        console.log('Đang đăng nhập với:', email, password);
+        logger.debug('Đang đăng nhập với:', email, password);
         const success = await login(email, password, rememberMe);
-        console.log('Kết quả đăng nhập:', success);
+        logger.debug('Kết quả đăng nhập:', success);
         
         if (success) {
           setSnackbarMessage('Đăng nhập thành công!');
@@ -115,7 +116,7 @@ const Login: React.FC = () => {
           navigate('/dashboard');
         }
       } catch (error) {
-        console.error('Lỗi khi đăng nhập:', error);
+        logger.error('Lỗi khi đăng nhập:', error);
         setLoginError('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau.');
       }
     }

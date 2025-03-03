@@ -1,0 +1,2 @@
+all api need token, exclude login.
+what ever call api you should check, test response.

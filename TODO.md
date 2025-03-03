@@ -19,6 +19,23 @@
 - [x] Cập nhật ô chọn Vai trò để lấy dữ liệu từ API
 - [x] Thêm chức năng xóa tài khoản với dialog xác nhận
 - [x] Thêm chức năng khóa/mở khóa tài khoản
+- [x] Cập nhật xử lý trạng thái tài khoản (status): 0 = Hoạt động, 1 = Chưa kích hoạt, 2 = Đã khóa
+- [x] Tối ưu hóa hệ thống log với logger utility
+- [x] Thêm menu con cho mục Sản phẩm (Loại Sản Phẩm, Biến Thể, Hãng, Danh mục)
+- [x] Thêm menu con cho mục Đơn hàng (Giỏ Hàng, Đơn Hàng)
+- [x] Sửa lỗi hiển thị dữ liệu mẫu khi gọi API thất bại, thay thế bằng thông báo lỗi
+- [x] Sửa lỗi TypeScript trong AccountsPage.tsx và accountService.ts
+- [x] Cải thiện xử lý xóa tài khoản với hiển thị thông tin tài khoản cần xóa
+- [x] Cải thiện xử lý thay đổi trạng thái tài khoản với các hành động riêng biệt (khóa, mở khóa, kích hoạt)
+- [x] Cải thiện hàm getAccounts để xử lý nhiều định dạng dữ liệu từ API khác nhau
+- [x] Cải thiện hàm mapStatusToString để xử lý cả trường hợp status là số hoặc chuỗi
+- [x] Cải thiện hàm getStatusLabel để hiển thị trạng thái với màu sắc phù hợp
+- [x] Cải thiện hàm getRoleChip để hiển thị vai trò bằng tiếng Việt và màu sắc phù hợp
+- [x] Sửa lỗi hiển thị thông báo lỗi khi API trả về mã lỗi 401 (Unauthorized)
+- [x] Sửa lỗi kiểu dữ liệu trong EditAccountDialog (status và roles)
+- [x] Thêm thuộc tính onAccountUpdated vào interface EditAccountDialogProps và cập nhật xử lý nút Submit
+- [x] Cập nhật hàm getAccounts để xử lý đúng cấu trúc dữ liệu từ API mới
+- [x] Sửa lỗi khi thay đổi số dòng hiển thị không cập nhật đúng pageSize trong API
 
 ## Đang thực hiện
 - [ ] Hoàn thiện chức năng quản lý tài khoản

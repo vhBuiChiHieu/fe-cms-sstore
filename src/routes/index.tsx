@@ -6,9 +6,10 @@ import Login from '../pages/Login';
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AccountsPage from '../pages/users/AccountsPage';
+import logger from '../utils/logger';
 
 const AppRoutes: React.FC = () => {
-  console.log('Rendering AppRoutes');
+  logger.debug('Rendering AppRoutes');
   
   return (
     <Routes>

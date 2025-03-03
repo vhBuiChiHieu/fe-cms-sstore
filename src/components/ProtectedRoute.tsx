@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
+import logger from '../utils/logger';
 
 const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -9,9 +10,9 @@ const ProtectedRoute: React.FC = () => {
 
   // Log trạng thái xác thực
   useEffect(() => {
-    console.log('ProtectedRoute - isAuthenticated:', isAuthenticated);
-    console.log('ProtectedRoute - isLoading:', isLoading);
-    console.log('ProtectedRoute - current location:', location.pathname);
+    logger.debug('ProtectedRoute - isAuthenticated:', isAuthenticated);
+    logger.debug('ProtectedRoute - isLoading:', isLoading);
+    logger.debug('ProtectedRoute - current location:', location.pathname);
   }, [isAuthenticated, isLoading, location]);
 
   // Hiển thị loading khi đang kiểm tra trạng thái đăng nhập
@@ -32,12 +33,12 @@ const ProtectedRoute: React.FC = () => {
 
   // Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
   if (!isAuthenticated) {
-    console.log('ProtectedRoute - Redirecting to login');
+    logger.debug('ProtectedRoute - Redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Nếu đã đăng nhập, hiển thị nội dung của route
-  console.log('ProtectedRoute - Rendering protected content');
+  logger.debug('ProtectedRoute - Rendering protected content');
   return <Outlet />;
 };
 

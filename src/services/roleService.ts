@@ -1,10 +1,18 @@
 import axios from 'axios';
 import { BASE_URL, TOKEN } from '../utils/config';
+import logger from '../utils/logger';
+
+export interface Permission {
+  id: number;
+  name: string;
+  description: string;
+}
 
 export interface Role {
   id: string;
   name: string;
   description?: string;
+  permissions?: Permission[];
 }
 
 /**
@@ -18,7 +26,7 @@ export const getRoles = async (): Promise<Role[]> => {
       }
     });
     
-    console.log('API roles response:', response.data);
+    logger.debug('API roles response:', response.data);
     
     // Kiểm tra cấu trúc dữ liệu trả về từ API
     if (response.data && response.data.data) {
@@ -29,7 +37,8 @@ export const getRoles = async (): Promise<Role[]> => {
         return roles.map((role: any) => ({
           id: role.id.toString(),
           name: role.name,
-          description: role.description
+          description: role.description,
+          permissions: role.permissions
         }));
       }
     }
@@ -39,16 +48,17 @@ export const getRoles = async (): Promise<Role[]> => {
       return response.data.map((role: any) => ({
         id: role.id.toString(),
         name: role.name,
-        description: role.description
+        description: role.description,
+        permissions: role.permissions
       }));
     }
     
     // Nếu không phân tích được, trả về dữ liệu mẫu
-    console.log('Không thể phân tích cấu trúc dữ liệu API roles, sử dụng dữ liệu mẫu');
+    logger.warn('Không thể phân tích cấu trúc dữ liệu API roles, sử dụng dữ liệu mẫu');
     return getMockRoles();
     
   } catch (error) {
-    console.error('Lỗi khi lấy danh sách vai trò:', error);
+    logger.error('Lỗi khi lấy danh sách vai trò:', error);
     
     // Trả về dữ liệu mẫu khi API bị lỗi hoặc không có sẵn
     return getMockRoles();
@@ -63,22 +73,37 @@ export const getMockRoles = (): Role[] => {
     {
       id: '1',
       name: 'ADMIN',
-      description: 'Quản trị viên hệ thống'
+      description: 'Quản trị viên hệ thống',
+      permissions: [
+        { id: 1, name: 'CREATE_USER', description: 'Tạo người dùng' },
+        { id: 2, name: 'UPDATE_USER', description: 'Cập nhật người dùng' },
+        { id: 3, name: 'DELETE_USER', description: 'Xóa người dùng' }
+      ]
     },
     {
       id: '2',
       name: 'MANAGER',
-      description: 'Quản lý'
+      description: 'Quản lý',
+      permissions: [
+        { id: 4, name: 'VIEW_USER', description: 'Xem người dùng' },
+        { id: 5, name: 'UPDATE_USER', description: 'Cập nhật người dùng' }
+      ]
     },
     {
       id: '3',
-      name: 'STAFF',
-      description: 'Nhân viên'
+      name: 'GUEST',
+      description: 'Khách',
+      permissions: [
+        { id: 6, name: 'VIEW_PUBLIC_INFO', description: 'Xem thông tin công khai' }
+      ]
     },
     {
       id: '4',
       name: 'USER',
-      description: 'Người dùng thông thường'
+      description: 'Người dùng thông thường',
+      permissions: [
+        { id: 7, name: 'VIEW_OWN_INFO', description: 'Xem thông tin cá nhân' }
+      ]
     }
   ];
 };
