@@ -10,12 +10,13 @@ import {
   SelectChangeEvent
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import accountService, { Account } from '../../services/accountService';
+import accountService, { Account, UserProfile } from '../../services/accountService';
 import { getRoles, Role } from '../../services/roleService';
 import AddAccountDialog from './components/AddAccountDialog';
 import EditAccountDialog from './components/EditAccountDialog';
 import DeleteAccountDialog from './components/DeleteAccountDialog';
 import StatusChangeDialog from './components/StatusChangeDialog';
+import ViewAccountDialog from './components/ViewAccountDialog';
 import SearchFilters from './components/SearchFilters';
 import AccountsTable from './components/AccountsTable';
 import PaginationControls from './components/PaginationControls';
@@ -44,7 +45,11 @@ const AccountsPage: React.FC = () => {
   const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [openStatusDialog, setOpenStatusDialog] = useState<boolean>(false);
+  const [openViewDialog, setOpenViewDialog] = useState<boolean>(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [accountProfile, setAccountProfile] = useState<UserProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [accountToChangeStatus, setAccountToChangeStatus] = useState<{
     id: string;
     email: string;
@@ -76,7 +81,6 @@ const AccountsPage: React.FC = () => {
       const response = await getRoles();
       setRoles(response || []);
     } catch (error) {
-      console.error('Error fetching roles:', error);
       setSnackbar({
         open: true,
         message: 'Không thể tải danh sách vai trò. Vui lòng thử lại sau.',
@@ -106,7 +110,6 @@ const AccountsPage: React.FC = () => {
       setAccounts(response.data || []);
       setTotalCount(response.totalCount || 0);
     } catch (error) {
-      console.error('Error fetching accounts:', error);
       setError('Không thể tải danh sách tài khoản. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
@@ -201,6 +204,32 @@ const AccountsPage: React.FC = () => {
   const handleOpenEditDialog = (account: Account) => {
     setSelectedAccount(account);
     setOpenEditDialog(true);
+  };
+
+  const handleViewAccountDetails = async (account: Account) => {
+    setSelectedAccount(account);
+    setOpenViewDialog(true);
+    setLoadingProfile(true);
+    setProfileError(null);
+    setAccountProfile(null);
+
+    try {
+      const profile = await accountService.getAccountProfileById(account.id);
+      if (profile) {
+        setAccountProfile(profile);
+      } else {
+        setProfileError('Không tìm thấy thông tin tài khoản');
+      }
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : 'Không thể tải thông tin tài khoản');
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Không thể tải thông tin tài khoản',
+        severity: 'error',
+      });
+    } finally {
+      setLoadingProfile(false);
+    }
   };
 
   const handleCloseEditDialog = () => {
@@ -304,7 +333,6 @@ const AccountsPage: React.FC = () => {
         severity: 'success',
       });
     } catch (error) {
-      console.error('Error changing account status:', error);
       setSnackbar({
         open: true,
         message: 'Không thể thay đổi trạng thái tài khoản. Vui lòng thử lại sau.',
@@ -322,6 +350,13 @@ const AccountsPage: React.FC = () => {
       ...snackbar,
       open: false,
     });
+  };
+
+  const handleCloseViewDialog = () => {
+    setOpenViewDialog(false);
+    setSelectedAccount(null);
+    setAccountProfile(null);
+    setProfileError(null);
   };
 
   return (
@@ -365,6 +400,7 @@ const AccountsPage: React.FC = () => {
           onLockClick={handleLockAccount}
           onUnlockClick={handleUnlockAccount}
           onActivateClick={handleActivateAccount}
+          onViewClick={handleViewAccountDetails}
           onRefresh={handleRefresh}
         />
 
@@ -396,6 +432,15 @@ const AccountsPage: React.FC = () => {
         loading={false}
         onChange={() => {}}
         onSubmit={() => {}}
+      />
+
+      {/* View Account Dialog */}
+      <ViewAccountDialog
+        open={openViewDialog}
+        onClose={handleCloseViewDialog}
+        accountProfile={accountProfile}
+        loading={loadingProfile}
+        error={profileError}
       />
 
       {selectedAccount && (
