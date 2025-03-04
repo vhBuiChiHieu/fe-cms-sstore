@@ -242,10 +242,12 @@ const ProfileDialog: React.FC<ProfileDialogProps> = ({ open, onClose }) => {
       fullWidth
       PaperProps={{
         elevation: 5,
-        sx: { 
+        sx: (theme) => ({ 
           borderRadius: 2,
-          overflow: 'hidden'
-        }
+          overflow: 'hidden',
+          border: `2px solid ${theme.palette.primary.main}`,
+          boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.25)}`
+        })
       }}
     >
       <DialogTitle sx={{ 

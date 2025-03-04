@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Set Token</title>
+  <script>
+    function setToken() {
+      const token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTc0MDk2OTg0OSwiZXhwIjoxNzQ5NjA5ODQ5fQ.yS8s_o8cZdBTM8Jiq6FzFJ8COdsq2PVyoSuBb9JcpsfnlpIxXYLRnivGvqIgywT_";
+      localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', token);
+      
+      // Tạo cũng authState để tương thích
+      const authState = {
+        user: {
+          id: 1,
+          email: "admin@admin.com",
+          firstName: "Admin",
+          lastName: "User"
+        },
+        token: token,
+        refreshToken: token,
+        isAuthenticated: true
+      };
+      localStorage.setItem('authState', JSON.stringify(authState));
+      
+      document.getElementById('result').innerText = "Token đã được lưu thành công!";
+    }
+  </script>
+</head>
+<body>
+  <h1>Set Token Tool</h1>
+  <p>Click vào nút dưới đây để lưu token vào localStorage:</p>
+  <button onclick="setToken()">Lưu Token</button>
+  <p id="result"></p>
+</body>
+</html>

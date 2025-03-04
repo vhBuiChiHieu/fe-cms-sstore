@@ -13,13 +13,15 @@ import {
 } from '@mui/material';
 import { FilterList as FilterListIcon } from '@mui/icons-material';
 import permissionService, { Permission } from '../../../services/permissionService';
+import * as roleService from '../../../services/roleService';
 import logger from '../../../utils/logger';
 import { RoleForm, PermissionList, SelectedPermissions, AddRoleDialogProps, RoleFormData } from './roles';
 
 const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
   open,
   onClose,
-  onSubmit
+  onSubmit,
+  onRoleAdded
 }) => {
   const theme = useTheme();
   
@@ -33,6 +35,7 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
   // State cho lỗi validation
   const [errors, setErrors] = useState<{
     name?: string;
+    form?: string;
   }>({});
 
   // State cho tìm kiếm quyền
@@ -42,6 +45,9 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
+  
+  // State cho trạng thái đang gửi form
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Reset form khi dialog mở
   useEffect(() => {
@@ -70,11 +76,10 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
       setLoadingPermissions(true);
       setPermissionError(null);
       
-      const result = await permissionService.getPermissions({
-        pageSize: 100 // Lấy tối đa 100 quyền
-      });
+      // Sử dụng API lấy tất cả quyền thay vì API phân trang
+      const permissions = await permissionService.getAllPermissions();
       
-      setPermissions(result.permissions);
+      setPermissions(permissions);
     } catch (error) {
       logger.error('Lỗi khi tải danh sách quyền:', error);
       setPermissionError('Không thể tải danh sách quyền. Vui lòng thử lại sau.');
@@ -141,7 +146,7 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
 
   // Kiểm tra form trước khi submit
   const validateForm = (): boolean => {
-    const newErrors: {name?: string} = {};
+    const newErrors: {name?: string; form?: string} = {};
     
     if (!formData.name.trim()) {
       newErrors.name = 'Tên vai trò không được để trống';
@@ -152,9 +157,47 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
   };
 
   // Xử lý submit form
-  const handleSubmit = () => {
-    if (validateForm() && onSubmit) {
-      onSubmit(formData);
+  const handleSubmit = async () => {
+    if (validateForm()) {
+      try {
+        // Hiển thị trạng thái đang xử lý
+        setSubmitting(true);
+        
+        // Gọi API tạo vai trò mới
+        const success = await roleService.createRole({
+          name: formData.name,
+          description: formData.description,
+          permissionIds: formData.permissionIds.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+        });
+        
+        if (success) {
+          // Gọi onSubmit nếu có
+          if (onSubmit) {
+            onSubmit(formData);
+          }
+          
+          // Gọi onRoleAdded để thông báo đã thêm vai trò thành công
+          if (onRoleAdded) {
+            onRoleAdded();
+          }
+          
+          // Đóng dialog
+          onClose();
+        } else {
+          setErrors((prev: { name?: string; form?: string }) => ({
+            ...prev,
+            form: 'Có lỗi xảy ra khi tạo vai trò. Vui lòng thử lại sau.'
+          }));
+        }
+      } catch (error) {
+        logger.error('Lỗi khi tạo vai trò:', error);
+        setErrors((prev: { name?: string; form?: string }) => ({
+          ...prev,
+          form: 'Có lỗi xảy ra khi tạo vai trò. Vui lòng thử lại sau.'
+        }));
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -177,12 +220,10 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
       setLoadingPermissions(true);
       setPermissionError(null);
       
-      const result = await permissionService.getPermissions({
-        search: searchQuery.trim(),
-        pageSize: 100
-      });
+      // Sử dụng API lấy tất cả quyền với tham số tìm kiếm
+      const permissions = await permissionService.getAllPermissions(searchQuery.trim());
       
-      setPermissions(result.permissions);
+      setPermissions(permissions);
     } catch (error) {
       logger.error('Lỗi khi tìm kiếm quyền:', error);
       setPermissionError('Không thể tìm kiếm quyền. Vui lòng thử lại sau.');
@@ -282,9 +323,10 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
           variant="contained" 
           color="primary"
           onClick={handleSubmit}
-          sx={{ textTransform: 'none' }}
+          disabled={submitting}
+          sx={{ textTransform: 'none', minWidth: 120 }}
         >
-          Thêm vai trò
+          {submitting ? 'Đang xử lý...' : 'Thêm vai trò'}
         </Button>
       </DialogActions>
     </Dialog>

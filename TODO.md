@@ -58,6 +58,10 @@
 - [x] Cải thiện giao diện chi tiết vai trò (RoleDetailDialog) với thiết kế hiện đại và trực quan hơn
 - [x] Thêm chức năng thêm vai trò mới với dialog xác nhận
 - [x] Thêm chức năng xóa vai trò với dialog xác nhận
+- [x] Cải thiện chức năng xem chi tiết vai trò bằng cách lấy dữ liệu từ API GET /api/role/{roleId}
+- [x] Thêm trạng thái loading vào dialog xem chi tiết vai trò
+- [x] Thêm xử lý lỗi khi lấy chi tiết vai trò thất bại
+- [x] Sửa lỗi hiển thị số quyền trong danh sách vai trò bằng cách lấy đầy đủ thông tin từ API chi tiết
 - [x] Thêm menu giỏ hàng vào layout chính với chức năng xem danh sách và xóa sản phẩm
 - [x] Tạo trang quản lý giỏ hàng với chức năng xem danh sách và quản lý giỏ hàng
 - [x] Tạo service cartService.ts
@@ -95,6 +99,11 @@
   - [x] categoryService.ts
   - [x] productService.ts
   - [x] permissionService.ts
+  - [x] roleService.ts
+- [x] Cập nhật chức năng quản lý vai trò:
+  - [x] Sử dụng endpoint `/api/role/page` để lấy danh sách vai trò và quyền hạn trong một lần gọi API
+  - [x] Loại bỏ các lần gọi API `/api/role/{roleId}` vì dữ liệu đã có trong response của `/api/role/page`
+  - [x] Thêm hàm xóa vai trò gọi endpoint DELETE `/api/role/{roleId}`
   - [x] roleService.ts
   - [x] cartService.ts
 - [ ] Cài đặt cơ chế refresh token khi token hết hạn

@@ -10,13 +10,28 @@ import {
   Chip,
   Box,
   CircularProgress,
-  Divider
+  Divider,
+  Card,
+  CardContent,
+  Paper,
+  alpha,
+  useTheme
 } from '@mui/material';
 import { UserProfile } from '../../../services/accountService';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Person as PersonIcon } from '@mui/icons-material';
-import AuthenticatedAvatar from '../../../components/AuthenticatedAvatar'; // Import AuthenticatedAvatar
+import {
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Cake as CakeIcon,
+  Phone as PhoneIcon,
+  Description as DescriptionIcon,
+  AccessTime as AccessTimeIcon,
+  Update as UpdateIcon,
+  Badge as BadgeIcon,
+  Stars as StarsIcon
+} from '@mui/icons-material';
+import AuthenticatedAvatar from '../../../components/AuthenticatedAvatar';
 
 interface ViewAccountDialogProps {
   open: boolean;
@@ -26,6 +41,29 @@ interface ViewAccountDialogProps {
   error: string | null;
 }
 
+// Component để hiển thị thông tin dạng nhãn-giá trị
+interface InfoItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string | React.ReactNode;
+}
+
+const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value }) => {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5 }}>
+      <Box sx={{ mr: 1, color: 'primary.main', display: 'flex', alignItems: 'center' }}>
+        {icon}
+      </Box>
+      <Box>
+        <Typography variant="caption" color="text.secondary" display="block">
+          {label}
+        </Typography>
+        <Typography variant="body2">{value}</Typography>
+      </Box>
+    </Box>
+  );
+};
+
 const ViewAccountDialog: React.FC<ViewAccountDialogProps> = ({
   open,
   onClose,
@@ -33,6 +71,7 @@ const ViewAccountDialog: React.FC<ViewAccountDialogProps> = ({
   loading,
   error
 }) => {
+  const theme = useTheme();
   // Hàm format ngày tháng
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return 'N/A';
@@ -83,100 +122,195 @@ const ViewAccountDialog: React.FC<ViewAccountDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        <Typography variant="h6">Thông tin chi tiết tài khoản</Typography>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{
+      sx: {
+        borderRadius: 2,
+        overflow: 'hidden'
+      }
+    }}>
+      <DialogTitle sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', py: 2 }}>
+        Thông tin chi tiết tài khoản
       </DialogTitle>
-      <DialogContent dividers>
+      <DialogContent sx={{ p: 3 }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 3 }}>
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Typography color="error" align="center" sx={{ py: 2 }}>
-            {error}
-          </Typography>
+          <Paper elevation={0} sx={{ p: 3, bgcolor: alpha(theme.palette.error.main, 0.1), borderRadius: 2 }}>
+            <Typography color="error" align="center">
+              {error}
+            </Typography>
+          </Paper>
         ) : !accountProfile ? (
-          <Typography align="center" sx={{ py: 2 }}>
-            Không tìm thấy thông tin tài khoản
-          </Typography>
+          <Paper elevation={0} sx={{ p: 3, bgcolor: alpha(theme.palette.warning.main, 0.1), borderRadius: 2 }}>
+            <Typography align="center">
+              Không tìm thấy thông tin tài khoản
+            </Typography>
+          </Paper>
         ) : (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <AuthenticatedAvatar
-                sx={{ width: 120, height: 120, mb: 2 }}
-                avatarUrl={accountProfile.avatar || null}
-              >
-                <PersonIcon sx={{ fontSize: 60 }} />
-              </AuthenticatedAvatar>
-              <Typography variant="h6" gutterBottom>
-                {accountProfile.fullName || `${accountProfile.firstName} ${accountProfile.lastName}`}
-              </Typography>
-              {getStatusLabel(accountProfile.status)}
-              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-                {accountProfile.roles && accountProfile.roles.map((role, index) => (
-                  <Box key={index} sx={{ m: 0.5 }}>
-                    {getRoleChip(role)}
-                  </Box>
-                ))}
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" fontWeight="bold">Thông tin cơ bản</Typography>
-                  <Divider sx={{ mb: 1 }} />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">ID</Typography>
-                  <Typography variant="body1">{accountProfile.id}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Email</Typography>
-                  <Typography variant="body1">{accountProfile.email || accountProfile.mail || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Họ</Typography>
-                  <Typography variant="body1">{accountProfile.firstName || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Tên</Typography>
-                  <Typography variant="body1">{accountProfile.lastName || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Ngày sinh</Typography>
-                  <Typography variant="body1">
-                    {accountProfile.dateOfBirth ? format(new Date(accountProfile.dateOfBirth), 'dd/MM/yyyy', { locale: vi }) : 'N/A'}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Số điện thoại</Typography>
-                  <Typography variant="body1">{accountProfile.phone || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="body2" color="text.secondary">Mô tả</Typography>
-                  <Typography variant="body1">{accountProfile.description || 'Không có mô tả'}</Typography>
-                </Grid>
-                
-                <Grid item xs={12} sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" fontWeight="bold">Thông tin thời gian</Typography>
-                  <Divider sx={{ mb: 1 }} />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Ngày tạo</Typography>
-                  <Typography variant="body1">{formatDate(accountProfile.createdAt)}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Cập nhật lần cuối</Typography>
-                  <Typography variant="body1">{formatDate(accountProfile.updatedAt)}</Typography>
+          <Box sx={{ mt: 1 }}>
+            <Grid container spacing={3}>
+              {/* Phần thông tin cá nhân */}
+              <Grid item xs={12} md={4}>
+                <Card elevation={2} sx={{ borderRadius: 2, height: '100%' }}>
+                  <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
+                    <Box 
+                      sx={{
+                        p: 0.5,
+                        mb: 2,
+                        borderRadius: '50%',
+                        boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.2)}`,
+                        display: 'inline-flex'
+                      }}
+                    >
+                      <AuthenticatedAvatar
+                        sx={{
+                          width: 140,
+                          height: 140,
+                          border: `3px solid ${theme.palette.background.paper}`,
+                        }}
+                        avatarUrl={accountProfile.avatar || null}
+                      >
+                        <PersonIcon sx={{ fontSize: 70 }} />
+                      </AuthenticatedAvatar>
+                    </Box>
+                    
+                    <Typography variant="h5" gutterBottom align="center" fontWeight="500">
+                      {accountProfile.fullName || `${accountProfile.firstName || ''} ${accountProfile.lastName || ''}`}
+                    </Typography>
+                    
+                    <Box sx={{ mb: 2 }}>
+                      {getStatusLabel(accountProfile.status)}
+                    </Box>
+                    
+                    <Divider sx={{ width: '100%', my: 2 }} />
+                    
+                    <Box sx={{ width: '100%' }}>
+                      <Typography variant="subtitle2" gutterBottom color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                        <StarsIcon fontSize="small" sx={{ mr: 1 }} />
+                        Vai trò
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-start', mt: 1 }}>
+                        {accountProfile.roles && accountProfile.roles.map((role, index) => (
+                          <Box key={index} sx={{ mr: 1, mb: 1 }}>
+                            {getRoleChip(role)}
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              {/* Phần thông tin chi tiết */}
+              <Grid item xs={12} md={8}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Card elevation={2} sx={{ borderRadius: 2 }}>
+                      <CardContent sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                          <BadgeIcon sx={{ mr: 1, color: 'primary.main' }} />
+                          Thông tin cá nhân
+                        </Typography>
+                        <Divider sx={{ mb: 2 }} />
+                        
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<PersonIcon fontSize="small" />}
+                              label="ID"
+                              value={accountProfile.id}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<EmailIcon fontSize="small" />}
+                              label="Email"
+                              value={accountProfile.email || accountProfile.mail || 'N/A'}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<PersonIcon fontSize="small" />}
+                              label="Họ"
+                              value={accountProfile.firstName || 'N/A'}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<PersonIcon fontSize="small" />}
+                              label="Tên"
+                              value={accountProfile.lastName || 'N/A'}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<CakeIcon fontSize="small" />}
+                              label="Ngày sinh"
+                              value={accountProfile.dateOfBirth ? format(new Date(accountProfile.dateOfBirth), 'dd/MM/yyyy', { locale: vi }) : 'N/A'}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<PhoneIcon fontSize="small" />}
+                              label="Số điện thoại"
+                              value={accountProfile.phone || 'N/A'}
+                            />
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Card elevation={2} sx={{ borderRadius: 2 }}>
+                      <CardContent sx={{ p: 3 }}>
+                        <InfoItem 
+                          icon={<DescriptionIcon fontSize="small" />}
+                          label="Mô tả"
+                          value={accountProfile.description || 'Không có mô tả'}
+                        />
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Card elevation={2} sx={{ borderRadius: 2 }}>
+                      <CardContent sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                          <AccessTimeIcon sx={{ mr: 1, color: 'primary.main' }} />
+                          Thông tin thời gian
+                        </Typography>
+                        <Divider sx={{ mb: 2 }} />
+                        
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<AccessTimeIcon fontSize="small" />}
+                              label="Ngày tạo"
+                              value={formatDate(accountProfile.createdAt)}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <InfoItem 
+                              icon={<UpdateIcon fontSize="small" />}
+                              label="Cập nhật lần cuối"
+                              value={formatDate(accountProfile.updatedAt)}
+                            />
+                          </Grid>
+                        </Grid>
+                      </CardContent>
+                    </Card>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
-          </Grid>
+          </Box>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={onClose} variant="contained" color="primary">
           Đóng
         </Button>
       </DialogActions>

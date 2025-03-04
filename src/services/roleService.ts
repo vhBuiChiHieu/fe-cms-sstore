@@ -1,6 +1,6 @@
-import axios from 'axios';
-import { BASE_URL, TOKEN } from '../utils/config';
+import { BASE_URL } from '../utils/config';
 import logger from '../utils/logger';
+import axiosInstance from '../utils/axiosInstance';
 
 export interface Permission {
   id: number;
@@ -34,11 +34,7 @@ export interface RoleListParams {
  */
 export const getRoles = async (): Promise<Role[]> => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/role`, {
-      headers: {
-        Authorization: `Bearer ${TOKEN}`
-      }
-    });
+    const response = await axiosInstance.get('/api/role/page');
     
     logger.debug('API roles response:', response.data);
     
@@ -73,6 +69,11 @@ export const getRoles = async (): Promise<Role[]> => {
     
   } catch (error) {
     logger.error('Lỗi khi lấy danh sách vai trò:', error);
+    logger.debug('Chi tiết lỗi:', error);
+    
+    if (axiosInstance.isAxiosError(error)) {
+      logger.error('AxiosError:', error.response?.data);
+    }
     
     // Trả về dữ liệu mẫu khi API bị lỗi hoặc không có sẵn
     return getMockRoles();
@@ -90,34 +91,32 @@ export const getRolesPaginated = async (params: RoleListParams): Promise<Paginat
     queryParams.append('pageSize', pageSize.toString());
     if (search) queryParams.append('search', search);
     
-    const response = await axios.get(`${BASE_URL}/api/role?${queryParams.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${TOKEN}`
-      }
-    });
+    // Sử dụng axiosInstance thay vì axios để tận dụng token tự động
+    const response = await axiosInstance.get(`/api/role/page?${queryParams.toString()}`);
     
     logger.debug('API paginated roles response:', response.data);
     
-    // Kiểm tra cấu trúc dữ liệu trả về từ API
-    if (response.data && response.data.data) {
-      // Nếu API trả về cấu trúc data.data
-      const responseData = response.data.data;
+    // Cấu trúc API thực tế có phân trang: { code, data: { data: Role[], totalItems, totalPages, ... }, ... }
+    if (response.data && response.data.data && response.data.data.data) {
+      const paginationData = response.data.data;
+      const roles = paginationData.data.map((role: any) => ({
+        id: role.id.toString(),
+        name: role.name,
+        description: role.description,
+        permissions: role.permissions || []
+      }));
       
+      // Trả về kết quả với thông tin phân trang
       return {
-        data: Array.isArray(responseData.data) ? responseData.data.map((role: any) => ({
-          id: role.id.toString(),
-          name: role.name,
-          description: role.description,
-          permissions: role.permissions
-        })) : [],
-        totalItems: responseData.totalItems || 0,
-        totalPages: responseData.totalPages || 1,
-        currentPage: responseData.pageIndex || 1,
-        pageSize: responseData.pageSize || 10
+        data: roles,
+        totalItems: paginationData.totalItems || roles.length,
+        totalPages: paginationData.totalPages || 1,
+        currentPage: paginationData.pageIndex || pageIndex,
+        pageSize: paginationData.pageSize || pageSize
       };
     }
     
-    // Nếu không phân tích được, trả về dữ liệu mẫu
+    // Nếu dữ liệu không đúng định dạng thì sử dụng dữ liệu mẫu
     logger.warn('Không thể phân tích cấu trúc dữ liệu API paginated roles, sử dụng dữ liệu mẫu');
     const mockRoles = getMockRoles();
     return {
@@ -130,6 +129,11 @@ export const getRolesPaginated = async (params: RoleListParams): Promise<Paginat
     
   } catch (error) {
     logger.error('Lỗi khi lấy danh sách vai trò phân trang:', error);
+    logger.debug('Chi tiết lỗi:', error);
+    
+    if (axiosInstance.isAxiosError(error)) {
+      logger.error('AxiosError:', error.response?.data);
+    }
     
     // Trả về dữ liệu mẫu khi API bị lỗi hoặc không có sẵn
     const mockRoles = getMockRoles();
@@ -146,6 +150,144 @@ export const getRolesPaginated = async (params: RoleListParams): Promise<Paginat
 /**
  * Tạo dữ liệu mẫu cho danh sách vai trò
  */
+/**
+ * Lấy chi tiết vai trò từ API theo ID
+ */
+export const getRoleById = async (roleId: string): Promise<Role> => {
+  try {
+    const response = await axiosInstance.get(`/api/role/${roleId}`);
+    
+    logger.debug('API role detail response:', response.data);
+    
+    // Kiểm tra cấu trúc dữ liệu trả về từ API
+    if (response.data && response.data.data) {
+      const roleData = response.data.data;
+      return {
+        id: roleData.id.toString(),
+        name: roleData.name,
+        description: roleData.description,
+        permissions: Array.isArray(roleData.permissions) ? roleData.permissions : []
+      };
+    }
+    
+    // Nếu API trả về trực tiếp đối tượng vai trò
+    if (response.data && response.data.id) {
+      const roleData = response.data;
+      return {
+        id: roleData.id.toString(),
+        name: roleData.name,
+        description: roleData.description,
+        permissions: Array.isArray(roleData.permissions) ? roleData.permissions : []
+      };
+    }
+    
+    // Nếu không phân tích được, trả về dữ liệu mẫu
+    logger.warn(`Không thể phân tích cấu trúc dữ liệu API vai trò ID ${roleId}, sử dụng dữ liệu mẫu`);
+    return getMockRoleById(roleId);
+    
+  } catch (error) {
+    logger.error(`Lỗi khi lấy chi tiết vai trò ID ${roleId}:`, error);
+    
+    if (axiosInstance.isAxiosError(error)) {
+      logger.error('AxiosError:', error.response?.data);
+    }
+    
+    // Trả về dữ liệu mẫu khi API bị lỗi hoặc không có sẵn
+    return getMockRoleById(roleId);
+  }
+};
+
+/**
+ * Lấy dữ liệu mẫu cho vai trò theo ID
+ */
+export const getMockRoleById = (roleId: string): Role => {
+  const allMockRoles = getMockRoles();
+  const foundRole = allMockRoles.find(role => role.id === roleId);
+  return foundRole || allMockRoles[0]; // Trả về vai trò đầu tiên nếu không tìm thấy
+};
+
+/**
+ * Dữ liệu để tạo vai trò mới
+ */
+export interface CreateRoleData {
+  name: string;
+  description?: string;
+  permissionIds?: number[];
+}
+
+/**
+ * Tạo vai trò mới
+ * @param data Dữ liệu để tạo vai trò mới (tên, mô tả và danh sách ID quyền)
+ * @returns Trả về true nếu tạo thành công, ngược lại trả về false
+ */
+export const createRole = async (data: CreateRoleData): Promise<boolean> => {
+  try {
+    // Chuyển đổi định dạng dữ liệu thành format API yêu cầu
+    const apiPayload = {
+      name: data.name,
+      description: data.description || '',
+      permissions: data.permissionIds ? data.permissionIds.map(id => ({ id })) : []
+    };
+    
+    logger.debug('Tạo vai trò với dữ liệu:', apiPayload);
+    
+    // Gọi API để tạo vai trò mới
+    const response = await axiosInstance.post('/api/role', apiPayload);
+    
+    logger.debug('Kết quả tạo vai trò:', response.data);
+    
+    // Kiểm tra kết quả trả về từ API
+    if (response.data && response.data.code === 200) {
+      logger.info('Tạo vai trò thành công:', data.name);
+      return true;
+    }
+    
+    logger.warn('Tạo vai trò thất bại:', response.data);
+    return false;
+  } catch (error) {
+    logger.error('Lỗi khi tạo vai trò mới:', error);
+    
+    if (axiosInstance.isAxiosError(error)) {
+      logger.error('Chi tiết lỗi API:', error.response?.data);
+    }
+    
+    return false;
+  }
+};
+
+/**
+ * Xóa vai trò theo ID
+ * @param roleId ID của vai trò cần xóa
+ * @returns Trả về true nếu xóa thành công, ngược lại trả về false
+ */
+export const deleteRole = async (roleId: string | number): Promise<boolean> => {
+  try {
+    logger.debug(`Xóa vai trò có ID: ${roleId}`);
+    
+    // Gọi API để xóa vai trò
+    const response = await axiosInstance.delete(`/api/role/${roleId}`);
+    
+    logger.debug('Kết quả xóa vai trò:', response.data);
+    
+    // Kiểm tra kết quả trả về từ API
+    if (response.data && response.data.code === 200) {
+      logger.info(`Xóa vai trò thành công ID: ${roleId}`);
+      return true;
+    }
+    
+    logger.warn(`Xóa vai trò thất bại ID: ${roleId}`, response.data);
+    return false;
+  } catch (error) {
+    logger.error(`Lỗi khi xóa vai trò ID: ${roleId}`, error);
+    
+    if (axiosInstance.isAxiosError(error)) {
+      logger.error('Chi tiết lỗi API:', error.response?.data);
+    }
+    
+    return false;
+  }
+};
+
 export const getMockRoles = (): Role[] => {
   return [
     {

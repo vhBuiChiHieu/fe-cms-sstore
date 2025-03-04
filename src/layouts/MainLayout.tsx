@@ -529,15 +529,40 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
             PaperProps={{
-              sx: {
-                minWidth: '250px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                mt: 1
-              }
+              sx: (theme) => ({
+                minWidth: '280px',
+                boxShadow: '0 6px 25px rgba(0,0,0,0.12)',
+                mt: 1.5,
+                border: `1px solid ${theme.palette.primary.main}`,
+                borderRadius: 2,
+                overflow: 'hidden',
+                animation: 'fadeIn 0.3s ease-out',
+                '@keyframes fadeIn': {
+                  '0%': { opacity: 0, transform: 'translateY(-10px)' },
+                  '100%': { opacity: 1, transform: 'translateY(0)' }
+                }
+              })
             }}
           >
-            <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid #eee' }}>
-              <Avatar sx={{ width: 60, height: 60, mb: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Box sx={(theme) => ({ 
+              p: 3, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              background: `linear-gradient(to bottom, ${theme.palette.primary.light}15, ${theme.palette.background.paper})` 
+            })}>
+              <Avatar sx={(theme) => ({ 
+                width: 70, 
+                height: 70, 
+                mb: 2, 
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)', 
+                border: `2px solid ${theme.palette.background.paper}`,
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)'
+                }
+              })}>
                 {avatarUrl ? (
                   <img 
                     src={avatarUrl} 
@@ -559,28 +584,59 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
                       : 'A'
                 )}
               </Avatar>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+              <Typography variant="subtitle1" sx={(theme) => ({ 
+                fontWeight: 'bold', 
+                textAlign: 'center',
+                fontSize: '1.1rem',
+                color: theme.palette.text.primary
+              })}>
                 {userProfile?.firstName && userProfile?.lastName 
                   ? `${userProfile.firstName} ${userProfile.lastName}`
                   : userProfile?.firstName || userProfile?.lastName
                     ? userProfile.firstName || userProfile.lastName
                     : user?.name || 'Người dùng'}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 1, wordBreak: 'break-word' }}>
+              <Typography variant="body2" sx={(theme) => ({ 
+                textAlign: 'center', 
+                mb: 1.5, 
+                wordBreak: 'break-word',
+                color: theme.palette.text.secondary,
+                fontStyle: 'italic',
+                maxWidth: '90%'
+              })}>
                 {userProfile?.email || user?.email || 'Chưa có email'}
               </Typography>
             </Box>
-            <MenuItem onClick={handleProfileClick}>
-              <ListItemIcon>
+            <MenuItem onClick={handleProfileClick} sx={(theme) => ({
+              py: 1.5,
+              mx: 1,
+              my: 0.5,
+              borderRadius: 1,
+              transition: 'all 0.2s',
+              '&:hover': {
+                backgroundColor: `${theme.palette.primary.light}20`
+              }
+            })}>
+              <ListItemIcon sx={{ color: 'primary.main' }}>
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText>Hồ sơ</ListItemText>
+              <ListItemText primary="Hồ sơ" primaryTypographyProps={{ fontWeight: 500 }} />
             </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon>
+            <MenuItem onClick={handleLogout} sx={(theme) => ({
+              py: 1.5,
+              mx: 1,
+              my: 0.5,
+              mb: 1,
+              borderRadius: 1,
+              transition: 'all 0.2s',
+              '&:hover': {
+                backgroundColor: `${theme.palette.error.light}20`
+              }
+            })}>
+              <ListItemIcon sx={{ color: 'error.main' }}>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText>Đăng xuất</ListItemText>
+              <ListItemText primary="Đăng xuất" primaryTypographyProps={{ fontWeight: 500 }} />
             </MenuItem>
           </Menu>
           <Menu

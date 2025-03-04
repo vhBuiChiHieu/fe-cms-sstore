@@ -26,6 +26,19 @@ const RoleForm: React.FC<RoleFormProps> = ({ formData, errors, onChange }) => {
         <AddIcon fontSize="small" />
         Thông tin cơ bản
       </Typography>
+      {errors.form && (
+        <Box sx={{ 
+          mb: 2, 
+          p: 1.5, 
+          borderRadius: 1, 
+          bgcolor: alpha(theme.palette.error.main, 0.1),
+          border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`
+        }}>
+          <Typography color="error.main" variant="body2">
+            {errors.form}
+          </Typography>
+        </Box>
+      )}
       <Box 
         sx={{ 
           display: 'flex', 

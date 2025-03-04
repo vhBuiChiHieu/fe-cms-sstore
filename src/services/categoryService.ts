@@ -1,6 +1,5 @@
-import axios from 'axios';
-import { BASE_URL, TOKEN } from '../utils/config';
 import logger from '../utils/logger';
+import axiosInstance from '../utils/axiosInstance';
 
 /**
  * Tham số cho việc lấy danh sách danh mục
@@ -83,11 +82,7 @@ class CategoryService {
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params.sortDirection) queryParams.append('sortDirection', params.sortDirection);
       
-      const response = await axios.get<CategoryApiResponse>(`${BASE_URL}/api/category/list?${queryParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.get<CategoryApiResponse>(`/api/category/list?${queryParams.toString()}`);
       
       if (response.data.data && typeof response.data.data === 'object' && 'data' in response.data.data) {
         // Xử lý trường hợp data là CategoryPaginationResult
@@ -117,11 +112,7 @@ class CategoryService {
    */
   async createCategory(data: CreateCategoryData): Promise<boolean> {
     try {
-      await axios.post(`${BASE_URL}/api/category`, data, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      await axiosInstance.post('/api/category', data);
       return true;
     } catch (error) {
       logger.error('Error creating category:', error);
@@ -137,11 +128,7 @@ class CategoryService {
    */
   async updateCategory(categoryId: string | number, data: Partial<CreateCategoryData>): Promise<boolean> {
     try {
-      await axios.put(`${BASE_URL}/api/category/${categoryId}`, data, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      await axiosInstance.put(`/api/category/${categoryId}`, data);
       return true;
     } catch (error) {
       logger.error(`Error updating category ${categoryId}:`, error);
@@ -156,11 +143,7 @@ class CategoryService {
    */
   async deleteCategory(categoryId: string | number): Promise<boolean> {
     try {
-      await axios.delete(`${BASE_URL}/api/category/${categoryId}`, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      await axiosInstance.delete(`/api/category/${categoryId}`);
       return true;
     } catch (error) {
       logger.error(`Error deleting category ${categoryId}:`, error);

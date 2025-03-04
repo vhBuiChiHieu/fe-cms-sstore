@@ -5,6 +5,7 @@ export interface AddRoleDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit?: (roleData: RoleFormData) => void;
+  onRoleAdded?: () => void;
 }
 
 // Interface cho dữ liệu form vai trò
@@ -26,6 +27,7 @@ export interface RoleFormProps {
   formData: RoleFormData;
   errors: {
     name?: string;
+    form?: string;
   };
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

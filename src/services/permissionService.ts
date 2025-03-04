@@ -1,6 +1,5 @@
-import axios from 'axios';
-import { BASE_URL, TOKEN } from '../utils/config';
 import logger from '../utils/logger';
+import axiosInstance from '../utils/axiosInstance';
 
 /**
  * Tham số cho việc lấy danh sách quyền hạn
@@ -63,7 +62,7 @@ export interface CreatePermissionData {
  */
 class PermissionService {
   /**
-   * Lấy danh sách quyền hạn
+   * Lấy danh sách quyền hạn có phân trang
    * @param params Tham số tìm kiếm và phân trang
    * @returns Danh sách quyền hạn và thông tin phân trang
    */
@@ -78,11 +77,7 @@ class PermissionService {
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params.sortDirection) queryParams.append('sortDirection', params.sortDirection);
       
-      const response = await axios.get<PermissionApiResponse>(`${BASE_URL}/api/permission/page?${queryParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.get<PermissionApiResponse>(`/api/permission/page?${queryParams.toString()}`);
       
       if (response.data.data && typeof response.data.data === 'object' && 'data' in response.data.data) {
         // Xử lý trường hợp data là PermissionPaginationResult
@@ -104,6 +99,37 @@ class PermissionService {
       return { permissions: [], totalCount: 0 };
     }
   }
+  
+  /**
+   * Lấy tất cả quyền hạn không phân trang (sử dụng pageSize lớn)
+   * @param search Từ khóa tìm kiếm (tùy chọn)
+   * @returns Danh sách tất cả quyền hạn
+   */
+  async getAllPermissions(search?: string): Promise<Permission[]> {
+    try {
+      const queryParams = new URLSearchParams();
+      // Sử dụng pageSize lớn để lấy tất cả quyền hạn trong một lần gọi API
+      queryParams.append('pageSize', '10000');
+      queryParams.append('pageIndex', '1');
+      if (search) queryParams.append('search', search.trim());
+      
+      const response = await axiosInstance.get<PermissionApiResponse>(`/api/permission/page?${queryParams.toString()}`);
+      
+      if (response.data && response.data.data && typeof response.data.data === 'object' && 'data' in response.data.data) {
+        // Xử lý trường hợp data là PermissionPaginationResult
+        const paginationResult = response.data.data as PermissionPaginationResult;
+        return paginationResult.data || [];
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        // Xử lý trường hợp data là Permission[]
+        return response.data.data;
+      }
+      
+      return [];
+    } catch (error) {
+      logger.error('Lỗi khi tải tất cả quyền hạn:', error);
+      return [];
+    }
+  }
 
   /**
    * Tạo quyền hạn mới
@@ -112,11 +138,7 @@ class PermissionService {
    */
   async createPermission(data: CreatePermissionData): Promise<boolean> {
     try {
-      await axios.post(`${BASE_URL}/api/permission`, data, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      await axiosInstance.post('/api/permission', data);
       return true;
     } catch (error) {
       logger.error('Lỗi khi tạo quyền hạn:', error);
@@ -132,11 +154,7 @@ class PermissionService {
    */
   async updatePermission(permissionId: string | number, data: Partial<CreatePermissionData>): Promise<boolean> {
     try {
-      await axios.put(`${BASE_URL}/api/permission/${permissionId}`, data, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      await axiosInstance.put(`/api/permission/${permissionId}`, data);
       return true;
     } catch (error) {
       logger.error(`Lỗi khi cập nhật quyền hạn ${permissionId}:`, error);
@@ -151,11 +169,7 @@ class PermissionService {
    */
   async deletePermission(permissionId: string | number): Promise<boolean> {
     try {
-      await axios.delete(`${BASE_URL}/api/permission/${permissionId}`, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      await axiosInstance.delete(`/api/permission/${permissionId}`);
       return true;
     } catch (error) {
       logger.error(`Lỗi khi xóa quyền hạn ${permissionId}:`, error);

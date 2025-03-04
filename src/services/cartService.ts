@@ -1,6 +1,6 @@
-import axios from 'axios';
-import { BASE_URL, TOKEN } from '../utils/config';
+import { BASE_URL } from '../utils/config';
 import logger from '../utils/logger';
+import axiosInstance from '../utils/axiosInstance';
 
 /**
  * Tham số cho việc lấy danh sách giỏ hàng
@@ -106,11 +106,7 @@ class CartService {
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params.sortDirection) queryParams.append('sortDirection', params.sortDirection);
       
-      const response = await axios.get<CartApiResponse>(`${BASE_URL}/api/cart/page?${queryParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.get<CartApiResponse>(`/api/cart/page?${queryParams.toString()}`);
       
       if (response.data.data) {
         const paginationResult = response.data.data;
@@ -166,41 +162,25 @@ class CartService {
     try {
       // Thử nhiều endpoint khác nhau vì chưa rõ endpoint chính xác
       try {
-        await axios.delete(`${BASE_URL}/api/cart/item/${cartItemId}`, {
-          headers: {
-            'Authorization': `Bearer ${TOKEN}`
-          }
-        });
+        await axiosInstance.delete(`/api/cart/item/${cartItemId}`);
         return true;
       } catch (error) {
         logger.error(`Endpoint /api/cart/item/${cartItemId} không hoạt động, thử endpoint khác`);
         
         try {
-          await axios.delete(`${BASE_URL}/api/cart-item/${cartItemId}`, {
-            headers: {
-              'Authorization': `Bearer ${TOKEN}`
-            }
-          });
+          await axiosInstance.delete(`/api/cart-item/${cartItemId}`);
           return true;
         } catch (error) {
           logger.error(`Endpoint /api/cart-item/${cartItemId} không hoạt động, thử endpoint khác`);
           
           try {
-            await axios.delete(`${BASE_URL}/api/cart-items/${cartItemId}`, {
-              headers: {
-                'Authorization': `Bearer ${TOKEN}`
-              }
-            });
+            await axiosInstance.delete(`/api/cart-items/${cartItemId}`);
             return true;
           } catch (error) {
             logger.error(`Endpoint /api/cart-items/${cartItemId} không hoạt động, thử endpoint khác`);
             
             // Thử endpoint cuối cùng
-            await axios.delete(`${BASE_URL}/api/cart/${cartItemId}`, {
-              headers: {
-                'Authorization': `Bearer ${TOKEN}`
-              }
-            });
+            await axiosInstance.delete(`/api/cart/${cartItemId}`);
             return true;
           }
         }
@@ -218,11 +198,7 @@ class CartService {
    */
   async getCartItemDetail(cartItemId: string | number): Promise<CartItem | null> {
     try {
-      const response = await axios.get(`${BASE_URL}/api/cart/item/${cartItemId}`, {
-        headers: {
-          'Authorization': `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.get(`/api/cart/item/${cartItemId}`);
       
       if (response.data && response.data.data) {
         return response.data.data as CartItem;

@@ -16,12 +16,15 @@ import {
   Paper,
   Grid,
   useTheme,
-  alpha
+  alpha,
+  CircularProgress,
+  Skeleton
 } from '@mui/material';
 import {
   Security as SecurityIcon,
   Check as CheckIcon,
-  VpnKey as VpnKeyIcon
+  VpnKey as VpnKeyIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import { Role, Permission } from '../../../services/roleService';
 
@@ -29,12 +32,13 @@ interface RoleDetailDialogProps {
   open: boolean;
   onClose: () => void;
   role: Role | null;
+  loading?: boolean;
 }
 
-const RoleDetailDialog: React.FC<RoleDetailDialogProps> = ({ open, onClose, role }) => {
+const RoleDetailDialog: React.FC<RoleDetailDialogProps> = ({ open, onClose, role, loading = false }) => {
   const theme = useTheme();
   
-  if (!role) return null;
+  if (!role && !loading) return null;
 
   // Nhóm các quyền theo tiền tố (ví dụ: ACCOUNT_, PRODUCT_, v.v.)
   const groupPermissions = (permissions: Permission[] = []) => {
@@ -67,7 +71,8 @@ const RoleDetailDialog: React.FC<RoleDetailDialogProps> = ({ open, onClose, role
     return colors[groupName as keyof typeof colors] || theme.palette.primary.main;
   };
 
-  const permissionGroups = groupPermissions(role.permissions);
+  // Sử dụng optional chaining để tránh lỗi khi role là null
+  const permissionGroups = groupPermissions(role?.permissions);
 
   return (
     <Dialog
@@ -97,38 +102,53 @@ const RoleDetailDialog: React.FC<RoleDetailDialogProps> = ({ open, onClose, role
           <Typography variant="h5" component="span" fontWeight="bold">
             Chi tiết vai trò
           </Typography>
-          <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
-            {role.description || 'Không có mô tả'}
-          </Typography>
+          {loading ? (
+            <Skeleton variant="text" width={180} height={20} sx={{ bgcolor: alpha('#fff', 0.3) }} />
+          ) : (
+            <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
+              {role?.description || 'Không có mô tả'}
+            </Typography>
+          )}
         </Box>
-        <Chip 
-          label={role.name} 
-          sx={{ 
-            ml: 'auto', 
-            fontWeight: 'bold',
-            bgcolor: 'white',
-            color: theme.palette.primary.main
-          }} 
-        />
+        {loading ? (
+          <Skeleton variant="rounded" width={100} height={32} sx={{ ml: 'auto', bgcolor: alpha('#fff', 0.3) }} />
+        ) : (
+          <Chip 
+            label={role?.name} 
+            sx={{ 
+              ml: 'auto', 
+              fontWeight: 'bold',
+              bgcolor: 'white',
+              color: theme.palette.primary.main
+            }} 
+          />
+        )}
       </Box>
       
       <DialogContent sx={{ pt: 3, pb: 2 }}>
-        <Box sx={{ mb: 2 }}>
-          <Typography 
-            variant="h6" 
-            gutterBottom 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              pb: 1,
-              borderBottom: `1px solid ${theme.palette.divider}`
-            }}
-          >
-            <SecurityIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} />
-            Danh sách quyền ({role.permissions?.length || 0})
-          </Typography>
-          
-          {(!role.permissions || role.permissions.length === 0) ? (
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        
+        {!loading && (
+          <Box sx={{ mb: 2 }}>
+            <Typography 
+              variant="h6" 
+              gutterBottom 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                pb: 1,
+                borderBottom: `1px solid ${theme.palette.divider}`
+              }}
+            >
+              <SecurityIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} />
+              Danh sách quyền ({role?.permissions?.length || 0})
+            </Typography>
+            
+            {(!role?.permissions || role.permissions.length === 0) ? (
             <Paper 
               variant="outlined" 
               sx={{ 
@@ -215,7 +235,8 @@ const RoleDetailDialog: React.FC<RoleDetailDialogProps> = ({ open, onClose, role
               })}
             </Box>
           )}
-        </Box>
+          </Box>
+        )}
       </DialogContent>
       
       <DialogActions sx={{ px: 3, py: 2, bgcolor: alpha(theme.palette.primary.light, 0.05) }}>
