@@ -158,7 +158,8 @@ const Login: React.FC = () => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                backgroundColor: '#1976d2',
+                opacity: 0.85,
               }
             }}
           >
@@ -174,7 +175,16 @@ const Login: React.FC = () => {
                 zIndex: 1
               }}
             >
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
+              <Typography 
+                variant="h3" 
+                fontWeight="bold" 
+                gutterBottom
+                sx={{
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                  letterSpacing: '1px',
+                  mb: 2
+                }}
+              >
                 S-STORE CMS
               </Typography>
               <Typography variant="body1">
@@ -316,13 +326,13 @@ const Login: React.FC = () => {
 
                 <Divider sx={{ my: 2 }}>
                   <Typography variant="body2" color="text.secondary">
-                    hoặc
+                    
                   </Typography>
                 </Divider>
 
                 <Box sx={{ textAlign: 'center', mt: 2 }}>
                   <Typography variant="body2" color="text.secondary">
-                    {new Date().getFullYear()} S-Store CMS. Bản quyền thuộc về S-Store.
+                    @{new Date().getFullYear()} S-Store CMS. Bản quyền thuộc về vhBuiChiHieu.
                   </Typography>
                 </Box>
               </Box>

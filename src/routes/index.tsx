@@ -6,7 +6,11 @@ import Login from '../pages/Login';
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AccountsPage from '../pages/users/AccountsPage';
+import CategoriesPage from '../pages/products/categories/CategoriesPage';
+import RolesPage from '../pages/users/RolesPage';
+import PermissionsPage from '../pages/users/PermissionsPage';
 import logger from '../utils/logger';
+import CartsPage from '../pages/orders/carts/CartsPage';
 
 const AppRoutes: React.FC = () => {
   logger.debug('Rendering AppRoutes');
@@ -21,14 +25,29 @@ const AppRoutes: React.FC = () => {
           {/* Trang chủ chuyển hướng đến dashboard */}
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="products" element={<div>Trang Sản phẩm</div>} />
-          <Route path="orders" element={<div>Trang Đơn hàng</div>} />
+          
+          {/* Routes sản phẩm */}
+          <Route path="products">
+            <Route index element={<div>Trang Sản phẩm</div>} />
+            <Route path="types" element={<div>Trang Loại Sản phẩm</div>} />
+            <Route path="variants" element={<div>Trang Biến thể</div>} />
+            <Route path="brands" element={<div>Trang Hãng</div>} />
+            <Route path="categories" element={<CategoriesPage />} />
+          </Route>
+          
+          <Route path="orders">
+            <Route index element={<div>Trang Đơn hàng</div>} />
+            <Route path="carts" element={<CartsPage />} />
+            <Route path="orders" element={<div>Trang Đơn hàng</div>} />
+          </Route>
           
           {/* Routes người dùng */}
           <Route path="users">
             <Route index element={<Navigate to="/users/accounts" replace />} />
             <Route path="accounts" element={<AccountsPage />} />
             <Route path="profiles" element={<div>Trang Thông tin cá nhân người dùng</div>} />
+            <Route path="roles" element={<RolesPage />} />
+            <Route path="permissions" element={<PermissionsPage />} />
           </Route>
           
           <Route path="reports" element={<div>Trang Báo cáo</div>} />

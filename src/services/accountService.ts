@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { BASE_URL, TOKEN } from '../utils/config';
+import axiosInstance from '../utils/axiosInstance';
 import logger from '../utils/logger';
 import { Permission } from './roleService';
 
@@ -24,8 +23,12 @@ export interface Account {
   email: string;
   username?: string;
   fullName?: string;
+  firstName?: string;
+  lastName?: string;
+  userInfoId?: string;
   status: number | string;
   role?: string;
+  selectedRoles?: { id: string; name: string; description?: string }[];
   createdAt?: string;
   updatedAt?: string;
   lastLogin?: string;
@@ -75,6 +78,41 @@ export interface CreateAccountData {
 }
 
 /**
+ * Thông tin profile của người dùng đăng nhập
+ */
+export interface UserProfile {
+  id: string | number;
+  email?: string;
+  mail?: string;
+  firstName: string;
+  lastName: string;
+  fullName?: string;
+  dateOfBirth: string;
+  phone?: string;
+  description?: string;
+  avatar?: string | null;
+  status: number;
+  roles: {
+    id: number | string;
+    name: string;
+    description?: string;
+    permissions?: Permission[];
+  }[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * Thông tin thống kê tài khoản
+ */
+export interface AccountStatistics {
+  totalAccount: number;
+  activeAccount?: number;
+  inactiveAccount?: number;
+  lockedAccount?: number;
+}
+
+/**
  * Service xử lý các thao tác liên quan đến tài khoản
  */
 class AccountService {
@@ -85,7 +123,7 @@ class AccountService {
    */
   async getAccounts(params: AccountListParams): Promise<AccountListResponse> {
     try {
-      const response = await axios.get(`${BASE_URL}/api/account/list`, {
+      const response = await axiosInstance.get('/api/account/list', {
         params: {
           pageIndex: params.page,
           pageSize: params.size,
@@ -94,9 +132,6 @@ class AccountService {
           sortDirection: params.sortDirection,
           status: params.status,
           role: params.role
-        },
-        headers: {
-          Authorization: `Bearer ${TOKEN}`
         }
       });
 
@@ -107,6 +142,10 @@ class AccountService {
         const accounts = (response.data.data.data || []).map((item: any) => ({
           id: item.id,
           email: item.mail || item.email, // Hỗ trợ cả mail và email
+          firstName: item.firstName,
+          lastName: item.lastName,
+          fullName: item.fullName || (item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : undefined),
+          userInfoId: item.userInfoId,
           status: item.status,
           role: item.roles && item.roles.length > 0 ? item.roles[0].name : undefined,
           createdAt: item.createdAt,
@@ -134,7 +173,7 @@ class AccountService {
     } catch (error) {
       logger.error('Error fetching accounts:', error);
       
-      if (axios.isAxiosError(error) && error.response) {
+      if (axiosInstance.isAxiosError(error) && error.response) {
         if (error.response.status === 401) {
           throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
         } else if (error.response.status === 403) {
@@ -155,18 +194,14 @@ class AccountService {
    */
   async createAccount(data: CreateAccountData): Promise<boolean> {
     try {
-      const response = await axios.post(`${BASE_URL}/api/account`, data, {
-        headers: {
-          Authorization: `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.post('/api/account', data);
 
       logger.debug('Create account response:', response.data);
       return response.status === 200 || response.status === 201;
     } catch (error) {
       logger.error('Error creating account:', error);
       
-      if (axios.isAxiosError(error) && error.response) {
+      if (axiosInstance.isAxiosError(error) && error.response) {
         if (error.response.data && error.response.data.message) {
           throw new Error(error.response.data.message);
         }
@@ -184,18 +219,14 @@ class AccountService {
    */
   async changeAccountStatus(accountId: string, status: number): Promise<boolean> {
     try {
-      const response = await axios.put(`${BASE_URL}/api/account/change-status/${accountId}?status=${status}`, {}, {
-        headers: {
-          Authorization: `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.put(`/api/account/change-status/${accountId}?status=${status}`);
 
       logger.debug('Change account status response:', response.data);
       return response.status === 200;
     } catch (error) {
       logger.error('Error changing account status:', error);
       
-      if (axios.isAxiosError(error) && error.response) {
+      if (axiosInstance.isAxiosError(error) && error.response) {
         if (error.response.data && error.response.data.message) {
           throw new Error(error.response.data.message);
         }
@@ -212,18 +243,14 @@ class AccountService {
    */
   async deleteAccount(accountId: string): Promise<boolean> {
     try {
-      const response = await axios.delete(`${BASE_URL}/api/account/${accountId}`, {
-        headers: {
-          Authorization: `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.delete(`/api/account/${accountId}`);
 
       logger.debug('Delete account response:', response.data);
       return response.status === 200;
     } catch (error) {
       logger.error('Error deleting account:', error);
       
-      if (axios.isAxiosError(error) && error.response) {
+      if (axiosInstance.isAxiosError(error) && error.response) {
         if (error.response.data && error.response.data.message) {
           throw new Error(error.response.data.message);
         }
@@ -240,18 +267,14 @@ class AccountService {
    */
   async getAccountProfile(accountId: string): Promise<AccountProfile | null> {
     try {
-      const response = await axios.get(`${BASE_URL}/api/account/${accountId}`, {
-        headers: {
-          Authorization: `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.get(`/api/account/${accountId}`);
 
       logger.debug('Get account profile response:', response.data);
       return response.data;
     } catch (error) {
       logger.error('Error getting account profile:', error);
       
-      if (axios.isAxiosError(error) && error.response) {
+      if (axiosInstance.isAxiosError(error) && error.response) {
         if (error.response.status === 404) {
           return null;
         } else if (error.response.data && error.response.data.message) {
@@ -271,24 +294,172 @@ class AccountService {
    */
   async updateAccount(accountId: string, data: any): Promise<boolean> {
     try {
-      const response = await axios.put(`${BASE_URL}/api/account/${accountId}`, data, {
-        headers: {
-          Authorization: `Bearer ${TOKEN}`
-        }
-      });
+      const response = await axiosInstance.put(`/api/account/${accountId}`, data);
 
       logger.debug('Update account response:', response.data);
       return response.status === 200;
     } catch (error) {
       logger.error('Error updating account:', error);
       
-      if (axios.isAxiosError(error) && error.response) {
+      if (axiosInstance.isAxiosError(error) && error.response) {
         if (error.response.data && error.response.data.message) {
           throw new Error(error.response.data.message);
         }
       }
       
       throw new Error('Không thể cập nhật tài khoản. Vui lòng thử lại sau.');
+    }
+  }
+
+  /**
+   * Lấy thông tin profile của người dùng đang đăng nhập
+   * @returns Thông tin profile của người dùng hoặc null nếu không tìm thấy
+   */
+  async getProfile(): Promise<UserProfile | null> {
+    try {
+      const token = localStorage.getItem('authState') 
+        ? JSON.parse(localStorage.getItem('authState') || '{}').token 
+        : '';
+        
+      const response = await axiosInstance.get('/api/account/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      logger.debug('Get user profile response:', response.data);
+      
+      // Xử lý dữ liệu từ API
+      const responseData = response.data.data || response.data;
+      
+      // Đảm bảo dữ liệu trả về đúng định dạng
+      return {
+        id: responseData.id,
+        email: responseData.email,
+        mail: responseData.mail,
+        firstName: responseData.firstName,
+        lastName: responseData.lastName,
+        fullName: responseData.fullName,
+        dateOfBirth: responseData.dateOfBirth,
+        phone: responseData.phone,
+        description: responseData.description,
+        avatar: responseData.avatar || null,
+        status: responseData.status,
+        roles: responseData.roles || [],
+        createdAt: responseData.createdAt,
+        updatedAt: responseData.updatedAt
+      };
+    } catch (error) {
+      logger.error('Error getting user profile:', error);
+      
+      if (axiosInstance.isAxiosError(error) && error.response) {
+        if (error.response.status === 404) {
+          return null;
+        } else if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+      }
+      
+      throw new Error('Không thể lấy thông tin cá nhân. Vui lòng thử lại sau.');
+    }
+  }
+
+  /**
+   * Lấy thông tin profile của tài khoản theo ID
+   * @param accountId ID của tài khoản cần lấy thông tin
+   * @returns Thông tin profile của tài khoản hoặc null nếu không tìm thấy
+   */
+  async getAccountProfileById(accountId: string): Promise<UserProfile | null> {
+    try {
+      const token = localStorage.getItem('authState') 
+        ? JSON.parse(localStorage.getItem('authState') || '{}').token 
+        : '';
+      
+      let response;
+      try {
+        // Thử gọi API profile trước
+        response = await axiosInstance.get(`/api/account/profile/${accountId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+      } catch (profileError) {
+        logger.warn('Error getting account profile, trying alternative endpoint:', profileError);
+        
+        // Nếu không thành công, thử gọi API account
+        response = await axiosInstance.get(`/api/account/${accountId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+      }
+
+      logger.debug('Get account profile by ID response:', response.data);
+      
+      // Xử lý dữ liệu từ API
+      const responseData = response.data.data || response.data;
+      
+      // Đảm bảo dữ liệu trả về đúng định dạng
+      return {
+        id: responseData.id,
+        email: responseData.email || responseData.mail,
+        mail: responseData.mail || responseData.email,
+        firstName: responseData.firstName || '',
+        lastName: responseData.lastName || '',
+        fullName: responseData.fullName || `${responseData.firstName || ''} ${responseData.lastName || ''}`.trim(),
+        dateOfBirth: responseData.dateOfBirth || '',
+        phone: responseData.phone || '',
+        description: responseData.description || '',
+        avatar: responseData.avatar || null,
+        status: responseData.status,
+        roles: responseData.roles || [],
+        createdAt: responseData.createdAt,
+        updatedAt: responseData.updatedAt
+      };
+    } catch (error) {
+      logger.error('Error getting account profile by ID:', error);
+      
+      if (axiosInstance.isAxiosError(error) && error.response) {
+        if (error.response.status === 404) {
+          return null;
+        } else if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+      }
+      
+      throw new Error('Không thể lấy thông tin tài khoản. Vui lòng thử lại sau.');
+    }
+  }
+
+  /**
+   * Lấy thống kê về tài khoản
+   * @returns Thông tin thống kê tài khoản
+   */
+  async getAccountStatistics(): Promise<AccountStatistics> {
+    try {
+      const response = await axiosInstance.get('/api/account/static');
+
+      logger.debug('Get account statistics response:', response.data);
+      
+      // Xử lý dữ liệu từ API
+      const responseData = response.data.data || response.data;
+      
+      return {
+        totalAccount: responseData.totalAccount || 0,
+        activeAccount: responseData.activeAccount || 0,
+        inactiveAccount: responseData.inactiveAccount || 0,
+        lockedAccount: responseData.lockedAccount || 0
+      };
+    } catch (error) {
+      logger.error('Error getting account statistics:', error);
+      
+      if (axiosInstance.isAxiosError(error) && error.response) {
+        if (error.response.data && error.response.data.message) {
+          throw new Error(error.response.data.message);
+        }
+      }
+      
+      throw new Error('Không thể lấy thống kê tài khoản. Vui lòng thử lại sau.');
     }
   }
 }

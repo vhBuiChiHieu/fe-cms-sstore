@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, 
   Grid, 
@@ -20,13 +20,33 @@ import {
   People as PeopleIcon,
   AttachMoney as AttachMoneyIcon
 } from '@mui/icons-material';
+import accountService from '../services/accountService';
+import { formatNumber } from '../utils/formatters';
 
 const Dashboard: React.FC = () => {
+  const [totalAccounts, setTotalAccounts] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchAccountStatistics = async () => {
+      try {
+        const statistics = await accountService.getAccountStatistics();
+        setTotalAccounts(statistics.totalAccount);
+      } catch (error) {
+        console.error('Lỗi khi lấy thống kê tài khoản:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccountStatistics();
+  }, []);
+
   // Dữ liệu mẫu
   const summaryCards = [
     { title: 'Doanh thu', value: '120.000.000đ', icon: <AttachMoneyIcon sx={{ fontSize: 40 }} color="primary" />, color: '#e3f2fd' },
     { title: 'Đơn hàng', value: '150', icon: <ShoppingCartIcon sx={{ fontSize: 40 }} color="secondary" />, color: '#e8eaf6' },
-    { title: 'Khách hàng', value: '1,200', icon: <PeopleIcon sx={{ fontSize: 40 }} color="success" />, color: '#e8f5e9' },
+    { title: 'Khách hàng', value: loading ? '...' : formatNumber(totalAccounts), icon: <PeopleIcon sx={{ fontSize: 40 }} color="success" />, color: '#e8f5e9' },
     { title: 'Tăng trưởng', value: '12%', icon: <TrendingUpIcon sx={{ fontSize: 40 }} color="warning" />, color: '#fff8e1' },
   ];
 

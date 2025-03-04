@@ -9,6 +9,7 @@ interface User {
   email: string;
   name: string;
   role: string;
+  avatar?: string | null;
 }
 
 interface AuthState {
@@ -24,6 +25,7 @@ interface AuthContextType {
   login: (email: string, password: string, rememberMe: boolean) => Promise<boolean>;
   logout: () => void;
   error: string | null;
+  updateUserFromProfile: (profile: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -136,6 +138,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     navigate('/login');
   };
 
+  const updateUserFromProfile = (profile: any) => {
+    if (!profile || !authState.token) return;
+    
+    const user: User = {
+      id: profile.id.toString(),
+      email: profile.email || profile.mail,
+      name: profile.fullName || `${profile.firstName} ${profile.lastName}`,
+      role: profile.roles && profile.roles.length > 0 ? profile.roles[0].name : 'USER',
+      avatar: profile.avatar
+    };
+    
+    setAuthState(prev => ({
+      ...prev,
+      user
+    }));
+    
+    // Cập nhật localStorage
+    localStorage.setItem('authState', JSON.stringify({
+      ...authState,
+      user
+    }));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -144,7 +169,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         logout,
-        error
+        error,
+        updateUserFromProfile
       }}
     >
       {children}
