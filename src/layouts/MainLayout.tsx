@@ -528,7 +528,48 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             }}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
+            PaperProps={{
+              sx: {
+                minWidth: '250px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                mt: 1
+              }
+            }}
           >
+            <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid #eee' }}>
+              <Avatar sx={{ width: 60, height: 60, mb: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                {avatarUrl ? (
+                  <img 
+                    src={avatarUrl} 
+                    alt="Avatar"
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover'
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  userProfile?.firstName 
+                    ? userProfile.firstName.charAt(0) 
+                    : user?.name 
+                      ? user.name.charAt(0) 
+                      : 'A'
+                )}
+              </Avatar>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                {userProfile?.firstName && userProfile?.lastName 
+                  ? `${userProfile.firstName} ${userProfile.lastName}`
+                  : userProfile?.firstName || userProfile?.lastName
+                    ? userProfile.firstName || userProfile.lastName
+                    : user?.name || 'Người dùng'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 1, wordBreak: 'break-word' }}>
+                {userProfile?.email || user?.email || 'Chưa có email'}
+              </Typography>
+            </Box>
             <MenuItem onClick={handleProfileClick}>
               <ListItemIcon>
                 <PersonIcon fontSize="small" />
@@ -541,6 +582,22 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
               </ListItemIcon>
               <ListItemText>Đăng xuất</ListItemText>
             </MenuItem>
+          </Menu>
+          <Menu
+            anchorEl={cartAnchorEl}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={Boolean(cartAnchorEl)}
+            onClose={handleCartMenuClose}
+          >
+            <MenuItem>Chức năng giỏ hàng đang phát triển</MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>

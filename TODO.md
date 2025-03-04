@@ -84,6 +84,7 @@
 - [x] Sửa lỗi TypeScript cho phương thức isAxiosError trong axiosInstance
 - [x] Thêm APP_CONFIG vào config.ts để sửa lỗi biên dịch
 - [x] Sửa lỗi kiểu dữ liệu trong UserInfoCard.tsx, thay false bằng '-' trong formatDate
+- [x] Cải thiện ProfileMenu để hiển thị Avatar, tên đầy đủ và email của người dùng khi bấm vào Avatar
 
 ## Quản lý Token và Xác thực
 
