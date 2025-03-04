@@ -112,11 +112,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             <MenuItem value="">Tất cả</MenuItem>
             {roles.map((role) => (
               <MenuItem key={role.id} value={role.name}>
-                {role.name === 'ADMIN' ? 'Quản trị viên' :
-                  role.name === 'MANAGER' ? 'Quản lý' :
-                    role.name === 'GUEST' ? 'Khách' :
-                      role.name === 'USER' ? 'Người dùng' :
-                        role.name}
+                {role.name}
               </MenuItem>
             ))}
           </Select>

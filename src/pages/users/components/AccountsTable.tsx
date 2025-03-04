@@ -67,28 +67,24 @@ const AccountsTable: React.FC<AccountsTableProps> = ({
     if (!role) return <Chip label="N/A" size="small" />;
     
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | 'default' = 'default';
-    let label = role;
     
+    // Sử dụng tên vai trò trực tiếp từ dữ liệu API
     switch (role) {
       case 'ADMIN':
         color = 'error';
-        label = 'Quản trị viên';
         break;
       case 'MANAGER':
         color = 'warning';
-        label = 'Quản lý';
         break;
       case 'USER':
         color = 'primary';
-        label = 'Người dùng';
         break;
       case 'GUEST':
         color = 'info';
-        label = 'Khách';
         break;
     }
     
-    return <Chip label={label} color={color} size="small" />;
+    return <Chip label={role} color={color} size="small" />;
   };
 
   // Hàm tạo nhãn trạng thái

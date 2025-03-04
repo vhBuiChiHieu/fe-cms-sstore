@@ -155,13 +155,8 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
 
   // Hiển thị tên vai trò dễ đọc
   const getRoleDisplayName = (roleName: string) => {
-    switch(roleName) {
-      case 'ADMIN': return 'Quản trị viên';
-      case 'MANAGER': return 'Quản lý';
-      case 'GUEST': return 'Khách';
-      case 'USER': return 'Người dùng';
-      default: return roleName;
-    }
+    // Trả về tên vai trò trực tiếp từ dữ liệu API
+    return roleName;
   };
 
   return (

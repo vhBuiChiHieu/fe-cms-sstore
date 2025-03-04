@@ -15,6 +15,20 @@ export interface Role {
   permissions?: Permission[];
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+export interface RoleListParams {
+  pageIndex: number;
+  pageSize: number;
+  search?: string;
+}
+
 /**
  * Lấy danh sách vai trò từ API
  */
@@ -62,6 +76,70 @@ export const getRoles = async (): Promise<Role[]> => {
     
     // Trả về dữ liệu mẫu khi API bị lỗi hoặc không có sẵn
     return getMockRoles();
+  }
+};
+
+/**
+ * Lấy danh sách vai trò từ API với phân trang
+ */
+export const getRolesPaginated = async (params: RoleListParams): Promise<PaginatedResponse<Role>> => {
+  try {
+    const { pageIndex, pageSize, search } = params;
+    const queryParams = new URLSearchParams();
+    queryParams.append('pageIndex', pageIndex.toString());
+    queryParams.append('pageSize', pageSize.toString());
+    if (search) queryParams.append('search', search);
+    
+    const response = await axios.get(`${BASE_URL}/api/role?${queryParams.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${TOKEN}`
+      }
+    });
+    
+    logger.debug('API paginated roles response:', response.data);
+    
+    // Kiểm tra cấu trúc dữ liệu trả về từ API
+    if (response.data && response.data.data) {
+      // Nếu API trả về cấu trúc data.data
+      const responseData = response.data.data;
+      
+      return {
+        data: Array.isArray(responseData.data) ? responseData.data.map((role: any) => ({
+          id: role.id.toString(),
+          name: role.name,
+          description: role.description,
+          permissions: role.permissions
+        })) : [],
+        totalItems: responseData.totalItems || 0,
+        totalPages: responseData.totalPages || 1,
+        currentPage: responseData.pageIndex || 1,
+        pageSize: responseData.pageSize || 10
+      };
+    }
+    
+    // Nếu không phân tích được, trả về dữ liệu mẫu
+    logger.warn('Không thể phân tích cấu trúc dữ liệu API paginated roles, sử dụng dữ liệu mẫu');
+    const mockRoles = getMockRoles();
+    return {
+      data: mockRoles,
+      totalItems: mockRoles.length,
+      totalPages: 1,
+      currentPage: 1,
+      pageSize: 10
+    };
+    
+  } catch (error) {
+    logger.error('Lỗi khi lấy danh sách vai trò phân trang:', error);
+    
+    // Trả về dữ liệu mẫu khi API bị lỗi hoặc không có sẵn
+    const mockRoles = getMockRoles();
+    return {
+      data: mockRoles,
+      totalItems: mockRoles.length,
+      totalPages: 1,
+      currentPage: 1,
+      pageSize: 10
+    };
   }
 };
 

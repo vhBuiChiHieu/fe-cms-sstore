@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
 
   // Dữ liệu mẫu
   const summaryCards = [
-    { title: 'Doanh thu', value: '120.000.000đ', icon: <AttachMoneyIcon sx={{ fontSize: 40 }} color="primary" />, color: '#e3f2fd' },
+    { title: 'Doanh thu', value: '120.000.000đ', icon: <AttachMoneyIcon sx={{ fontSize: 36, overflow: 'hidden' }} color="primary" />, color: '#e3f2fd' },
     { title: 'Đơn hàng', value: '150', icon: <ShoppingCartIcon sx={{ fontSize: 40 }} color="secondary" />, color: '#e8eaf6' },
     { title: 'Khách hàng', value: loading ? '...' : formatNumber(totalAccounts), icon: <PeopleIcon sx={{ fontSize: 40 }} color="success" />, color: '#e8f5e9' },
     { title: 'Tăng trưởng', value: '12%', icon: <TrendingUpIcon sx={{ fontSize: 40 }} color="warning" />, color: '#fff8e1' },
@@ -84,7 +84,8 @@ const Dashboard: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderRadius: 2,
-                bgcolor: card.color
+                bgcolor: card.color,
+                overflow: 'hidden'
               }}
             >
               <Box>

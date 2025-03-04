@@ -46,28 +46,24 @@ const ViewAccountDialog: React.FC<ViewAccountDialogProps> = ({
   // Hàm tạo chip hiển thị vai trò
   const getRoleChip = (role: { id: number | string; name: string; description?: string }) => {
     let color: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | 'default' = 'default';
-    let label = role.name;
     
+    // Sử dụng tên vai trò trực tiếp từ dữ liệu API
     switch (role.name) {
       case 'ADMIN':
         color = 'error';
-        label = 'Quản trị viên';
         break;
       case 'MANAGER':
         color = 'warning';
-        label = 'Quản lý';
         break;
       case 'USER':
         color = 'primary';
-        label = 'Người dùng';
         break;
       case 'GUEST':
         color = 'info';
-        label = 'Khách';
         break;
     }
     
-    return <Chip label={label} color={color} size="small" sx={{ mr: 1, mb: 1 }} />;
+    return <Chip label={role.name} color={color} size="small" sx={{ mr: 1, mb: 1 }} />;
   };
 
   // Hàm tạo nhãn trạng thái

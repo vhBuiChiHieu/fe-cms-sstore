@@ -201,9 +201,33 @@ const AccountsPage: React.FC = () => {
   };
 
   // Handle edit account dialog
-  const handleOpenEditDialog = (account: Account) => {
+  const handleOpenEditDialog = async (account: Account) => {
     setSelectedAccount(account);
-    setOpenEditDialog(true);
+    setLoadingProfile(true);
+    
+    try {
+      const profile = await accountService.getAccountProfileById(account.id);
+      if (profile && profile.roles) {
+        // Cập nhật tài khoản với danh sách vai trò đầy đủ
+        setSelectedAccount({
+          ...account,
+          selectedRoles: profile.roles.map(role => ({
+            id: role.id.toString(),
+            name: role.name,
+            description: role.description
+          }))
+        });
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Không thể tải thông tin vai trò tài khoản',
+        severity: 'error',
+      });
+    } finally {
+      setLoadingProfile(false);
+      setOpenEditDialog(true);
+    }
   };
 
   const handleViewAccountDetails = async (account: Account) => {
@@ -451,12 +475,12 @@ const AccountsPage: React.FC = () => {
             id: selectedAccount.id,
             email: selectedAccount.email,
             status: typeof selectedAccount.status === 'string' ? parseInt(selectedAccount.status as string, 10) : selectedAccount.status,
-            selectedRoles: selectedAccount.role ? [{ id: selectedAccount.role, name: selectedAccount.role }] : []
+            selectedRoles: selectedAccount.selectedRoles || []
           }}
           roles={roles}
           onAccountUpdated={handleAccountUpdated}
           loading={false}
-          profileLoading={false}
+          profileLoading={loadingProfile}
           submitting={false}
           onStatusChange={() => {}}
           onRoleChange={() => {}}

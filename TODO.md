@@ -79,7 +79,11 @@
 - [x] Xóa cột ngày tạo trong bảng danh sách tài khoản
 - [x] Tái cấu trúc trang quản lý tài khoản thành các file nhỏ hơn để dễ quản lý
 - [x] Hiển thị tên đầy đủ trong bảng tài khoản
+- [x] Cập nhật hiển thị vai trò trong các thành phần để hiển thị tên vai trò trực tiếp từ API thay vì chuyển đổi cứng
 - [x] Cải thiện EditAccountDialog để hiển thị các role đã được chọn sẵn khi mở dialog chỉnh sửa
+- [x] Sửa lỗi TypeScript cho phương thức isAxiosError trong axiosInstance
+- [x] Thêm APP_CONFIG vào config.ts để sửa lỗi biên dịch
+- [x] Sửa lỗi kiểu dữ liệu trong UserInfoCard.tsx, thay false bằng '-' trong formatDate
 
 ## Quản lý Token và Xác thực
 
@@ -92,7 +96,6 @@
   - [x] permissionService.ts
   - [x] roleService.ts
   - [x] cartService.ts
-- [x] Sửa lỗi TypeScript cho phương thức isAxiosError trong axiosInstance
 - [ ] Cài đặt cơ chế refresh token khi token hết hạn
 - [ ] Cải thiện xử lý lỗi xác thực
 - [ ] Thêm logging chi tiết cho các sự kiện xác thực

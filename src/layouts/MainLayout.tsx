@@ -319,7 +319,8 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 letterSpacing: '0.5px',
-                fontSize: '1.3rem'
+                fontSize: '1.3rem',
+                textAlign: 'center'
               }}
             >
               S-STORE CMS
