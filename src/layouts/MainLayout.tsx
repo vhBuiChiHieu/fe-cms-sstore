@@ -58,6 +58,7 @@ import permissionService, { Permission } from '../services/permissionService';
 import logger from '../utils/logger';
 import { BASE_URL } from '../utils/config';
 import axios from 'axios';
+import { getToken } from '../utils/authUtils';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 64;
