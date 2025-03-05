@@ -75,6 +75,7 @@ export interface CreateAccountData {
   rePassword: string;
   dateOfBirth: string;
   phone: string;
+  roles?: { id: string | number }[]; // Mảng các vai trò được chọn
 }
 
 /**
@@ -139,19 +140,36 @@ class AccountService {
 
       // Kiểm tra nếu response.data.data tồn tại (cấu trúc mới)
       if (response.data.data) {
-        const accounts = (response.data.data.data || []).map((item: any) => ({
-          id: item.id,
-          email: item.mail || item.email, // Hỗ trợ cả mail và email
-          firstName: item.firstName,
-          lastName: item.lastName,
-          fullName: item.fullName || (item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : undefined),
-          userInfoId: item.userInfoId,
-          status: item.status,
-          role: item.roles && item.roles.length > 0 ? item.roles[0].name : undefined,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-          lastLogin: item.lastLogin
-        }));
+        const accounts = (response.data.data.data || []).map((item: any) => {
+          // Tìm vai trò có số lượng Permission nhiều nhất
+          let roleWithMostPermissions = undefined;
+          let maxPermissionsCount = -1;
+          
+          if (item.roles && item.roles.length > 0) {
+            item.roles.forEach((role: any) => {
+              const permissionsCount = role.permissions ? role.permissions.length : 0;
+              if (permissionsCount > maxPermissionsCount) {
+                maxPermissionsCount = permissionsCount;
+                roleWithMostPermissions = role.name;
+              }
+            });
+          }
+          
+          return {
+            id: item.id,
+            email: item.mail || item.email, // Hỗ trợ cả mail và email
+            firstName: item.firstName,
+            lastName: item.lastName,
+            fullName: item.fullName || (item.firstName && item.lastName ? `${item.firstName} ${item.lastName}` : undefined),
+            userInfoId: item.userInfoId,
+            status: item.status,
+            role: roleWithMostPermissions,
+            selectedRoles: item.roles, // Lưu toàn bộ danh sách vai trò
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+            lastLogin: item.lastLogin
+          };
+        });
 
         return {
           data: accounts,
@@ -163,8 +181,30 @@ class AccountService {
       }
 
       // Cấu trúc cũ (nếu có)
+      const accounts = (response.data.content || []).map((item: any) => {
+        // Tìm vai trò có số lượng Permission nhiều nhất
+        let roleWithMostPermissions = undefined;
+        let maxPermissionsCount = -1;
+        
+        if (item.roles && item.roles.length > 0) {
+          item.roles.forEach((role: any) => {
+            const permissionsCount = role.permissions ? role.permissions.length : 0;
+            if (permissionsCount > maxPermissionsCount) {
+              maxPermissionsCount = permissionsCount;
+              roleWithMostPermissions = role.name;
+            }
+          });
+        }
+        
+        return {
+          ...item,
+          role: roleWithMostPermissions,
+          selectedRoles: item.roles // Lưu toàn bộ danh sách vai trò
+        };
+      });
+      
       return {
-        data: response.data.content || [],
+        data: accounts,
         totalCount: response.data.totalElements || 0,
         totalPages: response.data.totalPages || 0,
         pageSize: response.data.size || 10,
@@ -317,15 +357,8 @@ class AccountService {
    */
   async getProfile(): Promise<UserProfile | null> {
     try {
-      const token = localStorage.getItem('authState') 
-        ? JSON.parse(localStorage.getItem('authState') || '{}').token 
-        : '';
-        
-      const response = await axiosInstance.get('/api/account/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Sử dụng axiosInstance đã có sẵn token trong interceptor
+      const response = await axiosInstance.get('/api/account/profile');
 
       logger.debug('Get user profile response:', response.data);
       
