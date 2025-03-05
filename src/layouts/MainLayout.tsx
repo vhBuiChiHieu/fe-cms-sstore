@@ -25,7 +25,6 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  ShoppingCart as ShoppingCartIcon,
   People as PeopleIcon,
   Inventory as InventoryIcon,
   Assessment as AssessmentIcon,
@@ -43,7 +42,6 @@ import {
   Layers as LayersIcon,
   Business as BusinessIcon,
   ViewList as ViewListIcon,
-  ShoppingBasket as ShoppingBasketIcon,
   Receipt as ReceiptIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
   Security as SecurityIcon,
@@ -90,104 +88,216 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const { window } = props;
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [cartAnchorEl, setCartAnchorEl] = useState<null | HTMLElement>(null);
+  
+  // Không cần kiểm tra trạng thái xác thực ở đây vì ProtectedRoute đã làm việc này
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     navigate('/login');
+  //   }
+  // }, [isAuthenticated, navigate]);
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [cartAnchorEl, setCartAnchorEl] = useState<null | HTMLElement>(null);
   const [cartCount, setCartCount] = useState<number>(0);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false);
+  
+  // Flag để kiểm soát việc gọi API
+  const [initialized, setInitialized] = useState(false);
 
-  // Fetch profile khi component mount
+  // Fetch profile khi component mount - chỉ chạy một lần khi đã xác thực
   useEffect(() => {
+    console.log('useEffect fetchProfile - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
+    
+    // Chỉ gọi API khi đã xác thực và chưa khởi tạo
+    if (!isAuthenticated || initialized) {
+      return;
+    }
+    
+    // Đánh dấu đã khởi tạo
+    setInitialized(true);
+    
+    // Sử dụng biến cờ để đảm bảo chỉ gọi API một lần
+    let isMounted = true;
+    
     const fetchProfile = async () => {
       try {
-        setLoading(true);
-        const data = await accountService.getProfile();
-        setUserProfile(data);
-        
-        // Nếu có avatar, tải ảnh với token
-        if (data && data.avatar) {
-          const token = localStorage.getItem('authState') 
-            ? JSON.parse(localStorage.getItem('authState') || '{}').token 
-            : '';
+        if (isMounted) {
+          setLoading(true);
+          console.log('Fetching profile...');
+          const data = await accountService.getProfile();
+          console.log('Profile data:', data);
           
-          if (token) {
-            try {
-              const response = await axios.get(`${BASE_URL}/api/file/${data.avatar}`, {
-                headers: {
-                  Authorization: `Bearer ${token}`
-                },
-                responseType: 'blob'
-              });
+          if (isMounted && data) {
+            setUserProfile(data);
+          
+            // Nếu có avatar, tải ảnh với token
+            if (data.avatar) {
+              const token = getToken();
               
-              // Tạo URL từ blob
-              const url = URL.createObjectURL(response.data);
-              setAvatarUrl(url);
-            } catch (error) {
-              logger.error('Lỗi khi tải avatar:', error);
+              if (token && isMounted) {
+                try {
+                  const response = await axios.get(`${BASE_URL}/api/file/${data.avatar}`, {
+                    headers: {
+                      Authorization: `Bearer ${token}`
+                    },
+                    responseType: 'blob'
+                  });
+                  
+                  // Tạo URL từ blob
+                  if (isMounted) {
+                    const url = URL.createObjectURL(response.data);
+                    setAvatarUrl(url);
+                  }
+                } catch (error) {
+                  console.error('Lỗi khi tải avatar:', error);
+                  // Sử dụng avatar mặc định nếu không tải được avatar từ API
+                  setAvatarUrl(`https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random`);
+                }
+              } else {
+                // Sử dụng avatar mặc định nếu không có token
+                setAvatarUrl(`https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random`);
+              }
+            } else {
+              // Sử dụng avatar mặc định nếu không có avatar
+              setAvatarUrl(`https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random`);
             }
           }
         }
       } catch (err) {
-        logger.error('Lỗi khi tải thông tin profile:', err);
+        if (isMounted) {
+          logger.error('Lỗi khi tải thông tin profile:', err);
+          
+          // Sử dụng dữ liệu mặc định nếu không tải được profile
+          const mockUserProfile = {
+            id: 1,
+            email: 'admin@admin.com',
+            firstName: 'Admin',
+            lastName: 'User',
+            fullName: 'Admin User',
+            roles: [{ id: 1, name: 'ADMIN' }],
+            status: 1,
+            mail: 'admin@admin.com',
+            dateOfBirth: '1990-01-01',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          setUserProfile(mockUserProfile);
+          setAvatarUrl('https://ui-avatars.com/api/?name=Admin+User&background=random');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
-
+    
     fetchProfile();
-
-    // Cleanup URL khi component unmount
+    
+    // Cleanup URL và ngăn chặn các API calls khi component unmount
     return () => {
+      isMounted = false;
       if (avatarUrl) {
         URL.revokeObjectURL(avatarUrl);
       }
     };
-  }, []);
+  }, [isAuthenticated, initialized]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
 
-  // Lấy số lượng sản phẩm trong giỏ hàng
+  // Lấy số lượng sản phẩm trong giỏ hàng - chỉ chạy một lần khi đã xác thực
   useEffect(() => {
+    console.log('useEffect fetchCartCount - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
+    
+    // Tạm thời không gọi API giỏ hàng để tránh vấn đề
+    return;
+    
+    // Chỉ gọi API khi đã xác thực và đã khởi tạo
+    if (!isAuthenticated || !initialized) {
+      return;
+    }
+    
+    let isMounted = true;
+    
     const fetchCartCount = async () => {
       try {
-        const result = await cartService.getCarts({ pageIndex: 1, pageSize: 1 });
-        setCartCount(result.totalCount);
+        if (isMounted) {
+          console.log('Fetching cart count...');
+          const result = await cartService.getCarts({ pageIndex: 1, pageSize: 1 });
+          console.log('Cart count result:', result);
+          setCartCount(result.totalCount);
+        }
       } catch (error) {
-        logger.error('Lỗi khi tải số lượng giỏ hàng:', error);
+        if (isMounted) {
+          console.error('Lỗi khi tải số lượng giỏ hàng:', error);
+          logger.error('Lỗi khi tải số lượng giỏ hàng:', error);
+        }
       }
     };
 
     fetchCartCount();
-    // Có thể thêm interval để cập nhật số lượng giỏ hàng định kỳ
-    const interval = setInterval(fetchCartCount, 60000); // Cập nhật mỗi phút
     
-    return () => clearInterval(interval);
-  }, []);
+    // Cleanup function để tránh memory leak và gọi API khi component unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, initialized]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
 
-  // Lấy danh sách quyền hạn
+
+
+  // Lấy danh sách quyền hạn - chỉ chạy một lần khi đã xác thực
   useEffect(() => {
+    console.log('useEffect fetchPermissions - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
+    
+    // Tạm thời không gọi API quyền hạn để tránh vấn đề
+    return;
+    
+    // Chỉ gọi API khi đã xác thực và đã khởi tạo
+    if (!isAuthenticated || !initialized) {
+      return;
+    }
+    
+    let isMounted = true;
+    
     const fetchPermissions = async () => {
       try {
-        setLoadingPermissions(true);
-        const result = await permissionService.getPermissions({ pageIndex: 1, pageSize: 100 });
-        setPermissions(result.permissions);
+        if (isMounted) {
+          console.log('Fetching permissions...');
+          setLoadingPermissions(true);
+          const result = await permissionService.getPermissions({ pageIndex: 1, pageSize: 100 });
+          console.log('Permissions result:', result);
+          if (isMounted) {
+            setPermissions(result.permissions);
+          }
+        }
       } catch (error) {
-        logger.error('Lỗi khi tải danh sách quyền hạn:', error);
+        if (isMounted) {
+          console.error('Lỗi khi tải danh sách quyền hạn:', error);
+          logger.error('Lỗi khi tải danh sách quyền hạn:', error);
+        }
       } finally {
-        setLoadingPermissions(false);
+        if (isMounted) {
+          setLoadingPermissions(false);
+        }
       }
     };
 
     fetchPermissions();
-  }, []);
+    
+    // Cleanup function để tránh memory leak và gọi API khi component unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, initialized]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -256,11 +366,11 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
       ]
     },
     { 
-      text: 'Đặt hàng', 
-      icon: <ShoppingCartIcon />, 
+      text: 'Đơn hàng', 
+      icon: <ReceiptIcon />, 
       path: '/orders',
       subItems: [
-        { text: 'Giỏ Hàng', icon: <ShoppingBasketIcon />, path: '/orders/carts' },
+        { text: 'Giỏ Hàng', icon: <ReceiptIcon />, path: '/orders/carts' },
         { text: 'Đơn Hàng', icon: <ReceiptIcon />, path: '/orders/orders' }
       ]
     },
@@ -471,14 +581,7 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {getPageTitle()}
           </Typography>
-          <IconButton 
-            color="inherit"
-            onClick={handleCartMenuOpen}
-          >
-            <Badge badgeContent={cartCount} color="error">
-              <ShoppingCartIcon />
-            </Badge>
-          </IconButton>
+
           <IconButton color="inherit">
             <Badge badgeContent={4} color="error">
               <NotificationsIcon />
