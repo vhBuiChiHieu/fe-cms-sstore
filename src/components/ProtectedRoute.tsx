@@ -7,8 +7,7 @@ import logger from '../utils/logger';
 const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
-
-  // Log trạng thái xác thực
+  
   useEffect(() => {
     logger.debug('ProtectedRoute - isAuthenticated:', isAuthenticated);
     logger.debug('ProtectedRoute - isLoading:', isLoading);

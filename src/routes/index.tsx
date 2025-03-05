@@ -11,6 +11,7 @@ import RolesPage from '../pages/users/RolesPage';
 import PermissionsPage from '../pages/users/PermissionsPage';
 import logger from '../utils/logger';
 import CartsPage from '../pages/orders/carts/CartsPage';
+import ProductTypesPage from '../pages/products/types/ProductTypesPage';
 
 const AppRoutes: React.FC = () => {
   logger.debug('Rendering AppRoutes');
@@ -29,7 +30,7 @@ const AppRoutes: React.FC = () => {
           {/* Routes sản phẩm */}
           <Route path="products">
             <Route index element={<div>Trang Sản phẩm</div>} />
-            <Route path="types" element={<div>Trang Loại Sản phẩm</div>} />
+            <Route path="types" element={<ProductTypesPage />} />
             <Route path="variants" element={<div>Trang Biến thể</div>} />
             <Route path="brands" element={<div>Trang Hãng</div>} />
             <Route path="categories" element={<CategoriesPage />} />

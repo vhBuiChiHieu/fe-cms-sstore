@@ -58,6 +58,7 @@ import permissionService, { Permission } from '../services/permissionService';
 import logger from '../utils/logger';
 import { BASE_URL } from '../utils/config';
 import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { getToken } from '../utils/authUtils';
 
 const drawerWidth = 240;
@@ -149,13 +150,17 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             // Nếu có avatar, tải ảnh
             if (data.avatar) {
               try {
-                const token = getToken();
-                const response = await axios.get(`${BASE_URL}/api/file/${data.avatar}`, {
-                  headers: {
-                    Authorization: `Bearer ${token}`
-                  },
+                const avatarUrl = `${BASE_URL}/api/file/${data.avatar}`;
+                console.log('Đang tải avatar từ: ', avatarUrl);
+                
+                // Sử dụng axiosInstance thay vì axios trực tiếp
+                // axiosInstance sẽ tự động thêm token vào header
+                const response = await axiosInstance.get(`/api/file/${data.avatar}`, {
                   responseType: 'blob'
                 });
+                
+                console.log('Response type:', response.data.type);
+                console.log('Response size:', response.data.size, 'bytes');
                 
                 // Tạo URL từ blob
                 if (isMounted) {
@@ -166,7 +171,10 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
               } catch (error) {
                 console.error('Lỗi khi tải avatar:', error);
                 // Sử dụng avatar mặc định nếu không tải được avatar từ API
-                setAvatarUrl(`https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random`);
+                if (isMounted) {
+                  console.log('Sử dụng avatar mặc định cho:', data.firstName, data.lastName);
+                  setAvatarUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName || '')}+${encodeURIComponent(data.lastName || '')}&background=random`);
+                }
               }
             } else {
               // Sử dụng avatar mặc định nếu không có avatar

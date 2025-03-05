@@ -167,12 +167,14 @@ const AccountsPageContent: React.FC<AccountsPageContentProps> = ({
             password: '',
             rePassword: '',
             dateOfBirth: '',
-            phone: ''
+            phone: '',
+            roleIds: []
           }}
           formErrors={{}}
           loading={false}
           onChange={() => {}}
           onSubmit={() => {}}
+          roles={state.roles}
         />
       )}
 

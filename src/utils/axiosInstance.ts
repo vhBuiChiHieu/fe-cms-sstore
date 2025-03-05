@@ -43,8 +43,12 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     if (axios.isAxiosError(error)) {
-      // Nếu lỗi 401 Unauthorized, chuyển hướng đến trang đăng nhập
-      if (error.response?.status === 401) {
+      // Kiểm tra xem lỗi có phải từ request file không
+      const url = error.config?.url || '';
+      const isFileRequest = url.includes('/api/file/');
+      
+      // Nếu lỗi 401 Unauthorized và không phải là request file, chuyển hướng đến trang đăng nhập
+      if (error.response?.status === 401 && !isFileRequest) {
         logger.warn('Phiên đăng nhập hết hạn hoặc không hợp lệ');
         redirectToLogin();
       }

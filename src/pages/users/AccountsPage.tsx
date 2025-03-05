@@ -51,6 +51,28 @@ const AccountsPage: React.FC = () => {
     status: string;
     roles: string[];
   }>({ status: '0', roles: [] });
+  
+  // State for add account form
+  const [newAccount, setNewAccount] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    rePassword: string;
+    dateOfBirth: string;
+    phone: string;
+    roleIds: (string | number)[]; // Chỉ dùng cho UI, không gửi lên API
+  }>({  
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    rePassword: '',
+    dateOfBirth: '',
+    phone: '',
+    roleIds: []
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [accountProfile, setAccountProfile] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
@@ -193,16 +215,238 @@ const AccountsPage: React.FC = () => {
 
   const handleCloseAddDialog = () => {
     setOpenAddDialog(false);
+    // Reset form data khi đóng dialog
+    setNewAccount({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      rePassword: '',
+      dateOfBirth: '',
+      phone: '',
+      roleIds: []
+    });
+    setFormErrors({});
+  };
+
+  // Xử lý sự kiện onChange cho form thêm tài khoản
+  const handleAddAccountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Xử lý đặc biệt cho trường roleIds
+    if (name === 'roleIds') {
+      // Đảm bảo value là một mảng
+      const roleIdsArray = Array.isArray(value) ? value : [value];
+      
+      // Xóa lỗi nếu đã chọn vai trò
+      if (roleIdsArray.length > 0) {
+        setFormErrors(prev => ({
+          ...prev,
+          [name]: ''
+        }));
+      }
+      
+      // Cập nhật giá trị vào state, đảm bảo đúng kiểu dữ liệu (string | number)[]
+      setNewAccount(prev => ({
+        ...prev,
+        roleIds: roleIdsArray as (string | number)[]
+      }));
+      
+      // Log để debug
+      console.log('Đã chọn vai trò:', roleIdsArray);
+      return;
+    }
+    
+    // Xử lý đặc biệt cho trường ngày sinh
+    if (name === 'dateOfBirth' && value) {
+      // Kiểm tra và đảm bảo định dạng yyyy-MM-dd
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!datePattern.test(value)) {
+        setFormErrors(prev => ({
+          ...prev,
+          [name]: 'Định dạng ngày không hợp lệ. Sử dụng định dạng YYYY-MM-DD'
+        }));
+      } else {
+        // Xóa lỗi nếu có
+        if (formErrors[name]) {
+          setFormErrors(prev => ({
+            ...prev,
+            [name]: ''
+          }));
+        }
+      }
+    } else {
+      // Xóa lỗi cho các trường khác nếu có
+      if (formErrors[name]) {
+        setFormErrors(prev => ({
+          ...prev,
+          [name]: ''
+        }));
+      }
+    }
+    
+    // Cập nhật giá trị vào state
+    setNewAccount(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Xử lý sự kiện submit form thêm tài khoản
+  const handleSubmitAddAccount = async () => {
+    // Kiểm tra các trường bắt buộc
+    const errors: Record<string, string> = {};
+    let hasError = false;
+    
+    // Kiểm tra họ
+    if (!newAccount.firstName.trim()) {
+      errors.firstName = 'Họ không được để trống';
+      hasError = true;
+    }
+    
+    // Kiểm tra tên
+    if (!newAccount.lastName.trim()) {
+      errors.lastName = 'Tên không được để trống';
+      hasError = true;
+    }
+    
+    // Kiểm tra email
+    if (!newAccount.email.trim()) {
+      errors.email = 'Email không được để trống';
+      hasError = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newAccount.email)) {
+      errors.email = 'Định dạng email không hợp lệ';
+      hasError = true;
+    }
+    
+    // Kiểm tra mật khẩu
+    if (!newAccount.password) {
+      errors.password = 'Mật khẩu không được để trống';
+      hasError = true;
+    } else if (newAccount.password.length < 6) {
+      errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+      hasError = true;
+    }
+    
+    // Kiểm tra nhập lại mật khẩu
+    if (newAccount.password !== newAccount.rePassword) {
+      errors.rePassword = 'Mật khẩu nhập lại không khớp';
+      hasError = true;
+    }
+    
+    // Kiểm tra ngày sinh
+    if (!newAccount.dateOfBirth) {
+      errors.dateOfBirth = 'Ngày sinh không được để trống';
+      hasError = true;
+    } else {
+      // Kiểm tra định dạng ngày sinh yyyy-MM-dd
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!datePattern.test(newAccount.dateOfBirth)) {
+        errors.dateOfBirth = 'Định dạng ngày sinh không hợp lệ, sử dụng định dạng YYYY-MM-DD';
+        hasError = true;
+      } else {
+        // Kiểm tra ngày hợp lệ
+        const date = new Date(newAccount.dateOfBirth);
+        if (isNaN(date.getTime())) {
+          errors.dateOfBirth = 'Ngày sinh không hợp lệ';
+          hasError = true;
+        }
+      }
+    }
+    
+    // Kiểm tra số điện thoại
+    if (!newAccount.phone.trim()) {
+      errors.phone = 'Số điện thoại không được để trống';
+      hasError = true;
+    } else if (!/^\d{10,11}$/.test(newAccount.phone.replace(/\D/g, ''))) {
+      errors.phone = 'Số điện thoại phải có 10-11 chữ số';
+      hasError = true;
+    }
+    
+    // Kiểm tra vai trò
+    if (newAccount.roleIds.length === 0) {
+      errors.roleIds = 'Vui lòng chọn ít nhất một vai trò';
+      hasError = true;
+    }
+    
+    if (hasError) {
+      setFormErrors(errors);
+      return;
+    }
+    
+    // Log dữ liệu để kiểm tra
+    console.log('Dữ liệu gửi lên API:', newAccount);
+    
+    // Gửi dữ liệu lên API
+    try {
+      setSubmitting(true);
+      
+      // Chuẩn bị dữ liệu gửi lên API
+      const accountData = {
+        firstName: newAccount.firstName,
+        lastName: newAccount.lastName,
+        email: newAccount.email,
+        password: newAccount.password,
+        rePassword: newAccount.rePassword,
+        dateOfBirth: newAccount.dateOfBirth,
+        phone: newAccount.phone,
+        // Chuyển đổi roleIds thành roles theo định dạng API yêu cầu
+        roles: newAccount.roleIds.map(id => ({ 
+          id: typeof id === 'string' ? parseInt(id) : id 
+        }))
+      };
+      
+      // Log dữ liệu trước khi gửi đi
+      console.log('Dữ liệu cuối cùng gửi API:', accountData);
+      
+      // Gọi hàm createAccount từ accountService
+      const result = await accountService.createAccount(accountData);
+      
+      if (result) {
+        // Thành công
+        handleAccountCreated();
+      } else {
+        // Thất bại không có lỗi cụ thể
+        setSnackbar({
+          open: true,
+          message: 'Không thể tạo tài khoản. Vui lòng thử lại sau.',
+          severity: 'error',
+        });
+      }
+    } catch (error) {
+      // Xử lý lỗi
+      console.error('Error creating account:', error);
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Không thể tạo tài khoản. Vui lòng thử lại sau.',
+        severity: 'error',
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleAccountCreated = () => {
     setOpenAddDialog(false);
-    fetchAccountsWithParams(0, rowsPerPage, searchTerm, statusFilter, roleFilter);
+    // Giữ nguyên page hiện tại khi làm mới danh sách
+    fetchAccountsWithParams(page, rowsPerPage, searchTerm, statusFilter, roleFilter);
     setSnackbar({
       open: true,
       message: 'Tạo tài khoản mới thành công!',
       severity: 'success',
     });
+    // Reset form data
+    setNewAccount({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      rePassword: '',
+      dateOfBirth: '',
+      phone: '',
+      roleIds: []
+    });
+    setFormErrors({});
   };
 
   // Handle edit account dialog
@@ -292,7 +536,8 @@ const AccountsPage: React.FC = () => {
     setSelectedAccount(null);
     setEditFormData({ status: '0', roles: [] });
     setSubmitting(false);
-    fetchAccountsWithParams(0, rowsPerPage, searchTerm, statusFilter, roleFilter);
+    // Giữ nguyên page hiện tại khi làm mới danh sách
+    fetchAccountsWithParams(page, rowsPerPage, searchTerm, statusFilter, roleFilter);
     setSnackbar({
       open: true,
       message: 'Cập nhật tài khoản thành công!',
@@ -365,10 +610,36 @@ const AccountsPage: React.FC = () => {
     setSelectedAccount(null);
   };
 
+  const handleDeleteAccount = async () => {
+    if (!selectedAccount) return;
+    
+    setLoading(true);
+    
+    try {
+      // Gọi API xóa tài khoản
+      const success = await accountService.deleteAccount(selectedAccount.id);
+      
+      if (success) {
+        handleAccountDeleted();
+      } else {
+        throw new Error('Xóa tài khoản không thành công');
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Không thể xóa tài khoản. Vui lòng thử lại sau.',
+        severity: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAccountDeleted = () => {
     setOpenDeleteDialog(false);
     setSelectedAccount(null);
-    fetchAccountsWithParams(0, rowsPerPage, searchTerm, statusFilter, roleFilter);
+    // Giữ nguyên page hiện tại khi làm mới danh sách
+    fetchAccountsWithParams(page, rowsPerPage, searchTerm, statusFilter, roleFilter);
     setSnackbar({
       open: true,
       message: 'Xóa tài khoản thành công!',
@@ -428,7 +699,8 @@ const AccountsPage: React.FC = () => {
         accountToChangeStatus.id,
         accountToChangeStatus.newStatus
       );
-      fetchAccountsWithParams(0, rowsPerPage, searchTerm, statusFilter, roleFilter);
+      // Giữ nguyên page hiện tại khi làm mới danh sách
+      fetchAccountsWithParams(page, rowsPerPage, searchTerm, statusFilter, roleFilter);
       setSnackbar({
         open: true,
         message: accountToChangeStatus.action === 'lock'
@@ -525,19 +797,12 @@ const AccountsPage: React.FC = () => {
         open={openAddDialog}
         onClose={handleCloseAddDialog}
         onAccountCreated={handleAccountCreated}
-        newAccount={{
-          firstName: '',
-          lastName: '',
-          email: '',
-          password: '',
-          rePassword: '',
-          dateOfBirth: '',
-          phone: ''
-        }}
-        formErrors={{}}
-        loading={false}
-        onChange={() => {}}
-        onSubmit={() => {}}
+        newAccount={newAccount}
+        formErrors={formErrors}
+        loading={submitting}
+        onChange={handleAddAccountChange}
+        onSubmit={handleSubmitAddAccount}
+        roles={roles}
       />
 
       {/* View Account Dialog */}
@@ -557,12 +822,8 @@ const AccountsPage: React.FC = () => {
             id: selectedAccount.id,
             email: selectedAccount.email,
             status: parseInt(editFormData.status, 10),
-            // Tạo danh sách selectedRoles dựa trên roles được chọn trong editFormData
-            selectedRoles: selectedAccount.selectedRoles ? 
-              // Lọc các roles đã được chọn trong editFormData.roles
-              selectedAccount.selectedRoles.filter(role => 
-                editFormData.roles.includes(role.id)
-              ) : []
+            // Tạo danh sách selectedRoles từ editFormData.roles và danh sách roles đầy đủ
+            selectedRoles: roles.filter(role => editFormData.roles.includes(role.id))
           }}
           roles={roles}
           onAccountUpdated={handleAccountUpdated}
@@ -581,8 +842,8 @@ const AccountsPage: React.FC = () => {
           onClose={handleCloseDeleteDialog}
           account={selectedAccount}
           onAccountDeleted={handleAccountDeleted}
-          loading={false}
-          onConfirm={() => {}}
+          loading={loading}
+          onConfirm={handleDeleteAccount}
         />
       )}
 

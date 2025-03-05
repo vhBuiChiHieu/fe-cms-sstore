@@ -3,6 +3,20 @@ import { BASE_URL } from '../utils/config';
 import logger from '../utils/logger';
 
 /**
+ * Kết quả trả về từ API chung
+ */
+export interface ApiResponse<T> {
+  requestId: string;
+  code: number;
+  message: string;
+  path: string;
+  timestamp: string;
+  data: T;
+}
+
+
+
+/**
  * Tham số cho việc lấy danh sách sản phẩm
  */
 export interface ProductListParams {
@@ -37,6 +51,19 @@ export interface Category {
 }
 
 /**
+ * Biến thể sản phẩm
+ */
+export interface ProductVariant {
+  id: string | number;
+  sku: string;
+  color?: string;
+  size?: string;
+  price: number;
+  stock: number;
+  productImages: string[];
+}
+
+/**
  * Thông tin sản phẩm cơ bản
  */
 export interface Product {
@@ -55,6 +82,7 @@ export interface Product {
   thumbnail?: string;
   createdAt?: string;
   updatedAt?: string;
+  productVariants?: ProductVariant[];
 }
 
 /**
@@ -91,8 +119,8 @@ export interface CreateProductData {
   price?: number;
   salePrice?: number;
   quantity?: number;
-  categoryId?: string | number;
-  brandId?: string | number;
+  categoryId: string | number;
+  brandId: string | number;
   images?: string[];
   thumbnail?: string;
 }
@@ -147,11 +175,10 @@ class ProductService {
    */
   async getProductById(productId: string | number): Promise<Product | null> {
     try {
-      const response = await axiosInstance.get<ProductApiResponse>(`${BASE_URL}/api/product/${productId}`);
+      const response = await axiosInstance.get<ApiResponse<Product>>(`${BASE_URL}/api/product/${productId}`);
       
-      if (response.data.data && 'data' in response.data.data) {
-        const products = response.data.data.data;
-        return products.length > 0 ? products[0] : null;
+      if (response.data.code === 200 && response.data.data) {
+        return response.data.data;
       }
       
       return null;
@@ -192,6 +219,34 @@ class ProductService {
     }
   }
 
+  /**
+   * Lấy danh sách thương hiệu
+   * @returns Danh sách thương hiệu hoặc mảng rỗng nếu có lỗi
+   */
+  async getBrands(): Promise<Brand[]> {
+    try {
+      const response = await axiosInstance.get<ApiResponse<Brand[]>>(`${BASE_URL}/api/brand`);
+      return response.data.data || [];
+    } catch (error) {
+      logger.error('Error fetching brands:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Lấy danh sách danh mục
+   * @returns Danh sách danh mục hoặc mảng rỗng nếu có lỗi
+   */
+  async getCategories(): Promise<Category[]> {
+    try {
+      const response = await axiosInstance.get<ApiResponse<Category[]>>(`${BASE_URL}/api/category`);
+      return response.data.data || [];
+    } catch (error) {
+      logger.error('Error fetching categories:', error);
+      return [];
+    }
+  }
+  
   /**
    * Xóa sản phẩm
    * @param productId ID của sản phẩm cần xóa

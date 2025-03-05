@@ -1,0 +1,1 @@
+import { getRoles } from './src/services/roleService'; async function test() { try { const roles = await getRoles(); console.log('Roles:', JSON.stringify(roles, null, 2)); } catch (error) { console.error('Error:', error); } } test();

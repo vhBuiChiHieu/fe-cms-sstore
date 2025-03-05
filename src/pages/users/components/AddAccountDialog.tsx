@@ -8,9 +8,17 @@ import {
   Button,
   Grid,
   CircularProgress,
-  FormHelperText
+  FormHelperText,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  ListItemText,
+  OutlinedInput
 } from '@mui/material';
 import { CreateAccountData } from '../../../services/accountService';
+import { Role } from '../../../services/roleService';
 
 interface AddAccountDialogProps {
   open: boolean;
@@ -24,11 +32,13 @@ interface AddAccountDialogProps {
     rePassword: string;
     dateOfBirth: string;
     phone: string;
+    roleIds: (string | number)[];
   };
   formErrors: Record<string, string>;
   loading: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: () => void;
+  roles: Role[]; // Danh sách vai trò để chọn
 }
 
 const AddAccountDialog: React.FC<AddAccountDialogProps> = ({
@@ -39,7 +49,8 @@ const AddAccountDialog: React.FC<AddAccountDialogProps> = ({
   formErrors,
   loading,
   onChange,
-  onSubmit
+  onSubmit,
+  roles
 }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -119,14 +130,18 @@ const AddAccountDialog: React.FC<AddAccountDialogProps> = ({
               fullWidth
               label="Ngày sinh"
               name="dateOfBirth"
-              type="date"
+              type="text" 
               value={newAccount.dateOfBirth}
               onChange={onChange}
               error={!!formErrors.dateOfBirth}
-              helperText={formErrors.dateOfBirth || 'Định dạng: YYYY-MM-DD'}
+              helperText={formErrors.dateOfBirth || 'Nhập theo định dạng: YYYY-MM-DD (ví dụ: 1990-12-31)'}
               required
               InputLabelProps={{ shrink: true }}
               autoComplete="off"
+              placeholder="YYYY-MM-DD"
+              inputProps={{
+                pattern: '[0-9]{4}-[0-9]{2}-[0-9]{2}', // Định dạng yyyy-MM-dd
+              }}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -141,6 +156,44 @@ const AddAccountDialog: React.FC<AddAccountDialogProps> = ({
               required
               autoComplete="off"
             />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth error={!!formErrors.roleIds}>
+              <InputLabel id="role-select-label">Vai trò</InputLabel>
+              <Select
+                labelId="role-select-label"
+                id="role-select"
+                multiple
+                name="roleIds"
+                value={newAccount.roleIds}
+                onChange={(e) => {
+                  const event = {
+                    target: {
+                      name: 'roleIds',
+                      value: e.target.value
+                    }
+                  } as React.ChangeEvent<HTMLInputElement>;
+                  onChange(event);
+                }}
+                input={<OutlinedInput label="Vai trò" />}
+                renderValue={(selected) => {
+                  return roles
+                    .filter(role => selected.includes(role.id))
+                    .map(role => role.name)
+                    .join(', ');
+                }}
+              >
+                {roles.map((role) => (
+                  <MenuItem key={role.id} value={role.id}>
+                    <Checkbox checked={newAccount.roleIds.includes(role.id)} />
+                    <ListItemText primary={role.name} secondary={role.description} />
+                  </MenuItem>
+                ))}
+              </Select>
+              {!!formErrors.roleIds && (
+                <FormHelperText>{formErrors.roleIds}</FormHelperText>
+              )}
+            </FormControl>
           </Grid>
         </Grid>
       </DialogContent>

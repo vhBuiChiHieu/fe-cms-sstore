@@ -41,6 +41,7 @@
 - [x] Sửa lỗi cú pháp và TypeScript trong ProfileDialog.tsx
 - [x] Cập nhật hiển thị avatar từ API khi trường avatar không null
 - [x] Cải thiện bảo mật khi tải avatar bằng cách sử dụng token trong header thay vì URL
+- [x] Sửa lỗi tải avatar trong MainLayout từ API /api/file/{avatarName}
 - [x] Tạo trang danh mục sản phẩm với chức năng xem danh sách
 - [x] Tạo service categoryService để gọi API danh mục
 - [x] Thêm route cho trang danh mục sản phẩm
@@ -48,6 +49,9 @@
 - [x] Thêm chức năng tạo danh mục mới
 - [x] Cập nhật API phân trang danh mục sản phẩm với pageIndex bắt đầu từ 1
 - [x] Thêm chức năng lấy thông tin profile từ API và hiển thị avatar trong MainLayout
+- [x] Khôi phục chức năng giỏ hàng trong MainLayout
+- [x] Sửa lỗi gọi API liên tục trong MainLayout bằng cách thêm dependency array cho useEffect
+- [x] Sửa lỗi vòng lặp liên tục giữa Login và Dashboard bằng cách cải thiện cơ chế xác thực và chuyển hướng
 - [x] Sửa lỗi hiển thị avatar trong dialog xem chi tiết tài khoản bằng cách thêm đường dẫn đầy đủ
 - [x] Cải thiện bảo mật khi tải avatar bằng cách sử dụng token trong header thay vì URL
 - [x] Xóa cột "Đăng nhập cuối" trong bảng danh sách tài khoản
@@ -62,9 +66,13 @@
 - [x] Thêm trạng thái loading vào dialog xem chi tiết vai trò
 - [x] Thêm xử lý lỗi khi lấy chi tiết vai trò thất bại
 - [x] Sửa lỗi hiển thị số quyền trong danh sách vai trò bằng cách lấy đầy đủ thông tin từ API chi tiết
+- [x] Cập nhật hiển thị vai trò trong danh sách tài khoản để hiển thị vai trò có số lượng Permission nhiều nhất
+- [x] Sửa lỗi không thể cuộn xuống hết danh sách permission trong dialog thêm/sửa vai trò
 - [x] Thêm menu giỏ hàng vào layout chính với chức năng xem danh sách và xóa sản phẩm
 - [x] Tạo trang quản lý giỏ hàng với chức năng xem danh sách và quản lý giỏ hàng
 - [x] Tạo service cartService.ts
+- [x] Sửa lỗi không thể check chọn vai trò trong EditAccountDialog
+- [x] Sửa lỗi cập nhật vai trò trong trang quản lý tài khoản
 - [x] Tạo component CartMenu.tsx
 - [x] Tích hợp CartMenu vào MainLayout
 - [x] Tạo trang CartsPage.tsx để hiển thị và quản lý giỏ hàng
@@ -89,6 +97,10 @@
 - [x] Thêm APP_CONFIG vào config.ts để sửa lỗi biên dịch
 - [x] Sửa lỗi kiểu dữ liệu trong UserInfoCard.tsx, thay false bằng '-' trong formatDate
 - [x] Cải thiện ProfileMenu để hiển thị Avatar, tên đầy đủ và email của người dùng khi bấm vào Avatar
+- [x] Cải thiện trang chi tiết giỏ hàng để hiển thị thêm tổng số lượng sản phẩm bên cạnh tổng số mục
+- [x] Thêm trường chọn vai trò vào form tạo tài khoản
+- [x] Cập nhật chức năng xóa tài khoản để gọi API DELETE /api/account/{accountId}
+- [x] Cải thiện trải nghiệm người dùng bằng cách giữ nguyên pageIndex hiện tại khi làm mới danh sách sau khi tạo, chỉnh sửa, xóa tài khoản hoặc thay đổi trạng thái
 
 ## Quản lý Token và Xác thực
 
@@ -106,13 +118,21 @@
   - [x] Thêm hàm xóa vai trò gọi endpoint DELETE `/api/role/{roleId}`
   - [x] roleService.ts
   - [x] cartService.ts
+- [x] Sửa lỗi xác thực:
+  - [x] Sửa hàm getToken() để lấy token đúng cách từ authState trong localStorage
+  - [x] Cập nhật hàm redirectToLogin() để tránh vòng lặp chuyển hướng
+  - [x] Sử dụng avatar mặc định từ UI Avatars khi không có avatar
+  - [x] Cải thiện cách lưu trữ và khôi phục thông tin xác thực
 - [ ] Cài đặt cơ chế refresh token khi token hết hạn
 - [ ] Cải thiện xử lý lỗi xác thực
 - [ ] Thêm logging chi tiết cho các sự kiện xác thực
 
 ## Đang thực hiện
+- [ ] Thêm chức năng chỉnh sửa vai trò:
+  - [x] Tạo giao diện chỉnh sửa vai trò
+  - [ ] Thêm API PUT /api/role/{roleId} để cập nhật thông tin vai trò
 - [ ] Hoàn thiện chức năng quản lý tài khoản
-  - [ ] Tạo form thêm tài khoản mới
+  - [x] Tạo form thêm tài khoản mới
   - [ ] Tạo form chỉnh sửa tài khoản
   - [x] Xử lý khóa/mở khóa tài khoản
   - [x] Xử lý xóa tài khoản
@@ -129,7 +149,8 @@
   - [ ] Thêm chức năng chỉnh sửa vai trò
 - [ ] Tạo trang quản lý sản phẩm
   - [x] Hiển thị danh sách sản phẩm
-  - [ ] Thêm chức năng tạo sản phẩm mới
+  - [x] Thêm chức năng tạo sản phẩm mới
+  - [x] Thêm chức năng xem chi tiết sản phẩm
   - [ ] Thêm chức năng chỉnh sửa sản phẩm
   - [ ] Thêm chức năng xóa sản phẩm
 - [ ] Tạo trang quản lý đơn hàng

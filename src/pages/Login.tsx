@@ -42,9 +42,10 @@ const Login: React.FC = () => {
 
   // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang Dashboard
   useEffect(() => {
-    logger.debug('isAuthenticated changed:', isAuthenticated);
+    logger.debug('Login - isAuthenticated:', isAuthenticated);
     if (isAuthenticated) {
-      navigate('/dashboard');
+      // Sử dụng replace thay vì push để tránh thêm vào history stack
+      navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -112,8 +113,8 @@ const Login: React.FC = () => {
         if (success) {
           setSnackbarMessage('Đăng nhập thành công!');
           setShowSnackbar(true);
-          // Chuyển hướng đến trang Dashboard
-          navigate('/dashboard');
+          // Không cần chuyển hướng ở đây, useEffect sẽ xử lý
+          // navigate('/dashboard');
         }
       } catch (error) {
         logger.error('Lỗi khi đăng nhập:', error);

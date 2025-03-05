@@ -78,14 +78,12 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
       // Đảm bảo lấy đúng danh sách role IDs từ selectedRoles
       const roleIds = account.selectedRoles.map(role => role.id);
       
-      // Chỉ cập nhật nếu có sự thay đổi
-      if (JSON.stringify(roleIds.sort()) !== JSON.stringify([...selectedRoleIds].sort())) {
-        setSelectedRoleIds(roleIds);
-        console.log('Selected roles from account updated:', account.selectedRoles);
-        console.log('Set selected role IDs:', roleIds);
-      }
+      // Luôn cập nhật khi dialog mở hoặc account thay đổi
+      setSelectedRoleIds(roleIds);
+      console.log('Selected roles from account updated:', account.selectedRoles);
+      console.log('Set selected role IDs:', roleIds);
     }
-  }, [account, account?.selectedRoles]);
+  }, [account, open]);
   
   // Debug để theo dõi thay đổi của selectedRoleIds
   useEffect(() => {
@@ -117,6 +115,7 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
 
   // Xử lý chọn/bỏ chọn vai trò
   const handleToggleRole = (roleId: string) => {
+    // Tạo bản sao của mảng để tránh thay đổi trực tiếp state
     const currentSelectedRoles = [...selectedRoleIds];
     const index = currentSelectedRoles.indexOf(roleId);
     
@@ -132,6 +131,7 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
     
     // Cập nhật state trong component
     setSelectedRoleIds(newSelectedRoles);
+    console.log('Toggled role:', roleId, 'New selected roles:', newSelectedRoles);
     
     // Gọi callback để cập nhật state trong component cha
     // Tạo event giả để gọi hàm onRoleChange
@@ -142,6 +142,7 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
       }
     } as unknown as SelectChangeEvent<string[]>;
     
+    // Đảm bảo thông tin mới nhất được truyền lên component cha
     onRoleChange(fakeEvent);
   };
 
@@ -301,7 +302,11 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
                             <Checkbox
                               edge="start"
                               checked={selectedRoleIds.includes(role.id)}
-                              onChange={() => handleToggleRole(role.id)}
+                              onClick={(e) => e.stopPropagation()} // Ngăn sự kiện click lan ra ListItemButton
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleToggleRole(role.id);
+                              }}
                               tabIndex={-1}
                               disableRipple
                               color="primary"
