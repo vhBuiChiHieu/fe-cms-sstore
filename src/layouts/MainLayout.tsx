@@ -119,18 +119,58 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
 
   // Fetch profile khi component mount - chỉ chạy một lần khi đã xác thực
   // Hàm riêng để tải avatar, có thể gọi bất cứ lúc nào
+  // Thử nhiều cách khác nhau để tải avatar
   const loadAvatar = async () => {
     console.log('======= THỬ TẢI AVATAR RIÊNG =======');
     // Sử dụng token test đã biết có hoạt động
     const token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTc0MDk2OTg0OSwiZXhwIjoxNzQ5NjA5ODQ5fQ.yS8s_o8cZdBTM8Jiq6FzFJ8COdsq2PVyoSuBb9JcpsfnlpIxXYLRnivGvqIgywT_";
     const avatarName = 'avatar.jpeg';
     
+    // Tạo thẻ hình ảnh và thêm vào DOM để test
+    console.log('0. Tạo ngay một thẻ hình ảnh để test trước');
+    const imgUrl = `${BASE_URL}/api/file/${avatarName}`;
+    
+    // Thêm trực tiếp vào trang - cách này có thể hoạt động tốt hơn với CORS
+    console.log('0a. Thử tạo hình ảnh bằng XHR...');
+    setTimeout(() => {
+      const testImg = document.createElement('img');
+      testImg.style.width = '50px';
+      testImg.style.height = '50px';
+      testImg.style.position = 'fixed';
+      testImg.style.top = '10px';
+      testImg.style.right = '10px';
+      testImg.style.zIndex = '9999';
+      testImg.style.border = '2px solid red';
+      testImg.crossOrigin = 'anonymous';
+      
+      // Thêm headers 
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', imgUrl, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.responseType = 'blob';
+      xhr.onload = function() {
+        console.log('0c. XHR status:', this.status);
+        if (this.status === 200) {
+          const url = URL.createObjectURL(this.response);
+          testImg.src = url;
+          document.body.appendChild(testImg);
+          console.log('0d. Đã thêm hình ảnh vào DOM và tạo URL:', url);
+        }
+      };
+      xhr.onerror = function(e) {
+        console.error('0e. XHR error:', e);
+      };
+      console.log('0b. Gọi XHR send...');
+      xhr.send();
+    }, 1000); // Chờ 1 giây để đảm bảo DOM đã sẵn sàng
+    
     try {
       console.log('1. Tải avatar:', `${BASE_URL}/api/file/${avatarName}`);
       const response = await fetch(`${BASE_URL}/api/file/${avatarName}`, {
         headers: {
           Authorization: `Bearer ${token}`
-        }
+        },
+        mode: 'cors' // Thử với CORS
       });
       
       console.log('2. Trạng thái response:', response.status);
@@ -139,6 +179,7 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
         console.log('3. Đã tải xong, kích thước:', blob.size);
         const url = URL.createObjectURL(blob);
         setAvatarUrl(url);
+        console.log('4. Đã tạo URL cho avatar:', url);
       }
     } catch (e) {
       console.error('Lỗi khi tải avatar:', e);
