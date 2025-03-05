@@ -116,40 +116,9 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   // Flag để kiểm soát việc gọi API
   const [initialized, setInitialized] = useState(false);
 
-  // Hàm tải avatar từ API
-  const loadAvatar = async (avatarName: string, userName: string) => {
-    try {
-      setLoading(true);
-      const token = getToken();
-      
-      if (token) {
-        const response = await axios.get(`${BASE_URL}/api/file/${avatarName}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          responseType: 'blob'
-        });
-        
-        // Tạo URL từ blob
-        const url = URL.createObjectURL(response.data);
-        setAvatarUrl(url);
-      } else {
-        // Sử dụng avatar mặc định nếu không có token
-        setAvatarUrl(`https://ui-avatars.com/api/?name=${userName.replace(' ', '+')}&background=random`);
-      }
-    } catch (error) {
-      console.error('Lỗi khi tải avatar:', error);
-      // Sử dụng avatar mặc định nếu không tải được avatar từ API
-      setAvatarUrl(`https://ui-avatars.com/api/?name=${userName.replace(' ', '+')}&background=random`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Fetch profile khi component mount - chỉ chạy một lần khi đã xác thực
   useEffect(() => {
     console.log('useEffect fetchProfile - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
-    console.log('Current user from auth:', user);
     
     // Chỉ gọi API khi đã xác thực và chưa khởi tạo
     if (!isAuthenticated || initialized) {
@@ -158,13 +127,6 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
     
     // Đánh dấu đã khởi tạo
     setInitialized(true);
-    
-    // Kiểm tra nếu đã có user và avatar trong auth context
-    if (user && user.avatar) {
-      console.log('Sử dụng avatar từ context:', user.avatar);
-      loadAvatar(user.avatar, user.name);
-      return;
-    }
     
     // Sử dụng biến cờ để đảm bảo chỉ gọi API một lần
     let isMounted = true;
@@ -184,9 +146,28 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             // Lưu vào state của component để dùng
             setUserProfile(data);
             
-            // Tải avatar nếu có
+            // Nếu có avatar, tải ảnh
             if (data.avatar) {
-              loadAvatar(data.avatar, data.fullName || `${data.firstName} ${data.lastName}`);
+              try {
+                const token = getToken();
+                const response = await axios.get(`${BASE_URL}/api/file/${data.avatar}`, {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  },
+                  responseType: 'blob'
+                });
+                
+                // Tạo URL từ blob
+                if (isMounted) {
+                  const url = URL.createObjectURL(response.data);
+                  console.log('Avatar URL created:', url);
+                  setAvatarUrl(url);
+                }
+              } catch (error) {
+                console.error('Lỗi khi tải avatar:', error);
+                // Sử dụng avatar mặc định nếu không tải được avatar từ API
+                setAvatarUrl(`https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random`);
+              }
             } else {
               // Sử dụng avatar mặc định nếu không có avatar
               setAvatarUrl(`https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random`);
@@ -231,7 +212,7 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
         URL.revokeObjectURL(avatarUrl);
       }
     };
-  }, [isAuthenticated, initialized, user, updateUserFromProfile]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
+  }, [isAuthenticated, initialized, updateUserFromProfile]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
 
   // Lấy số lượng sản phẩm trong giỏ hàng - chỉ chạy một lần khi đã xác thực
   useEffect(() => {
