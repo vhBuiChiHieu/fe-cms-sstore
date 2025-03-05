@@ -96,11 +96,28 @@ const PermissionList: React.FC<PermissionListProps> = ({
       <Paper 
         variant="outlined" 
         sx={{ 
-          maxHeight: 300, 
+          height: 450, 
           overflow: 'auto', 
-          mb: 2,
+          mb: 0, 
           borderRadius: 1,
-          border: `1px solid ${theme.palette.divider}`
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+          boxShadow: `0px 0px 5px ${alpha(theme.palette.primary.main, 0.1)}`,
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: alpha(theme.palette.primary.main, 0.05),
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: alpha(theme.palette.primary.main, 0.2),
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: alpha(theme.palette.primary.main, 0.3),
+          },
+          maxHeight: '450px',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         {loadingPermissions ? (

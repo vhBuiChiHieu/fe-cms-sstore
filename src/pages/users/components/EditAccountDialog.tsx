@@ -72,17 +72,25 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
+  // Cập nhật selectedRoleIds khi account thay đổi (mở dialog hoặc thay đổi account từ bên ngoài)
   useEffect(() => {
     if (account && account.selectedRoles) {
       // Đảm bảo lấy đúng danh sách role IDs từ selectedRoles
       const roleIds = account.selectedRoles.map(role => role.id);
-      setSelectedRoleIds(roleIds);
       
-      // Log để debug
-      console.log('Selected roles from account:', account.selectedRoles);
-      console.log('Set selected role IDs:', roleIds);
+      // Chỉ cập nhật nếu có sự thay đổi
+      if (JSON.stringify(roleIds.sort()) !== JSON.stringify([...selectedRoleIds].sort())) {
+        setSelectedRoleIds(roleIds);
+        console.log('Selected roles from account updated:', account.selectedRoles);
+        console.log('Set selected role IDs:', roleIds);
+      }
     }
-  }, [account]);
+  }, [account, account?.selectedRoles]);
+  
+  // Debug để theo dõi thay đổi của selectedRoleIds
+  useEffect(() => {
+    console.log('selectedRoleIds updated:', selectedRoleIds);
+  }, [selectedRoleIds]);
 
   if (!account) return null;
 
@@ -122,8 +130,10 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
       newSelectedRoles = currentSelectedRoles;
     }
     
+    // Cập nhật state trong component
     setSelectedRoleIds(newSelectedRoles);
     
+    // Gọi callback để cập nhật state trong component cha
     // Tạo event giả để gọi hàm onRoleChange
     const fakeEvent = {
       target: {
@@ -291,6 +301,7 @@ const EditAccountDialog: React.FC<EditAccountDialogProps> = ({
                             <Checkbox
                               edge="start"
                               checked={selectedRoleIds.includes(role.id)}
+                              onChange={() => handleToggleRole(role.id)}
                               tabIndex={-1}
                               disableRipple
                               color="primary"

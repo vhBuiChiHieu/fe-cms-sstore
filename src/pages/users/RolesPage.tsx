@@ -31,7 +31,8 @@ import {
   Visibility as VisibilityIcon,
   VpnKey as VpnKeyIcon,
   Add as AddIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { 
   getRolesPaginated, 
@@ -43,6 +44,7 @@ import {
 import logger from '../../utils/logger';
 import RoleDetailDialog from './components/RoleDetailDialog';
 import AddRoleDialog from './components/AddRoleDialog';
+import EditRoleDialog from './components/roles/EditRoleDialog';
 
 const RolesPage: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -57,6 +59,8 @@ const RolesPage: React.FC = () => {
   const [addRoleDialogOpen, setAddRoleDialogOpen] = useState<boolean>(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [deleting, setDeleting] = useState<boolean>(false);
+  const [editRoleDialogOpen, setEditRoleDialogOpen] = useState<boolean>(false);
+  const [editLoading, setEditLoading] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState<{open: boolean; message: string; severity: 'success' | 'error' | 'info'}>({open: false, message: '', severity: 'info'});
 
   // Hàm lấy danh sách vai trò
@@ -182,6 +186,31 @@ const RolesPage: React.FC = () => {
     setDetailDialogOpen(false);
     // Đặt selectedRole về null sau khi đóng dialog để tránh hiển thị dữ liệu cũ khi mở lại
     setTimeout(() => setSelectedRole(null), 300);
+  };
+  
+  // Chỉnh sửa vai trò
+  const handleEditRole = (role: Role) => {
+    setSelectedRole(role);
+    setEditRoleDialogOpen(true);
+  };
+  
+  // Đóng dialog chỉnh sửa vai trò
+  const handleCloseEditRoleDialog = () => {
+    setEditRoleDialogOpen(false);
+    setTimeout(() => setSelectedRole(null), 300);
+  };
+  
+  // Xử lý sau khi cập nhật vai trò thành công
+  const handleRoleUpdated = () => {
+    // Hiển thị thông báo thành công
+    setSnackbar({
+      open: true,
+      message: 'Cập nhật vai trò thành công!',
+      severity: 'success'
+    });
+    
+    // Làm mới danh sách vai trò
+    fetchRoles();
   };
   
   // Mở dialog thêm vai trò
@@ -320,6 +349,16 @@ const RolesPage: React.FC = () => {
                             <VisibilityIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Chỉnh sửa vai trò">
+                          <IconButton 
+                            size="small" 
+                            color="primary"
+                            onClick={() => handleEditRole(role)}
+                            disabled={role.name === 'ADMIN' || role.name === 'USER'} // Không cho chỉnh sửa các vai trò mặc định
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip title="Xóa vai trò">
                           <IconButton 
                             size="small" 
@@ -366,6 +405,15 @@ const RolesPage: React.FC = () => {
         open={addRoleDialogOpen}
         onClose={handleCloseAddRoleDialog}
         onRoleAdded={handleRoleAdded}
+      />
+      
+      {/* Dialog chỉnh sửa vai trò */}
+      <EditRoleDialog
+        open={editRoleDialogOpen}
+        onClose={handleCloseEditRoleDialog}
+        onRoleUpdated={handleRoleUpdated}
+        role={selectedRole}
+        loading={editLoading}
       />
       
       {/* Snackbar thông báo */}

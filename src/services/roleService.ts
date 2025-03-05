@@ -38,13 +38,26 @@ export const getRoles = async (): Promise<Role[]> => {
     
     logger.debug('API roles response:', response.data);
     
-    // Kiểm tra cấu trúc dữ liệu trả về từ API
-    if (response.data && response.data.data) {
-      // Nếu API trả về cấu trúc data.data
-      const roles = response.data.data;
+    // Kiểm tra cấu trúc dữ liệu trả về từ API - format thực tế từ API
+    if (response.data && response.data.data && response.data.data.data) {
+      // API trả về cấu trúc { data: { data: [...roles] } }
+      const roles = response.data.data.data;
       
       if (Array.isArray(roles)) {
         return roles.map((role: any) => ({
+          id: role.id.toString(),
+          name: role.name,
+          description: role.description,
+          permissions: role.permissions
+        }));
+      }
+    }
+    
+    // Nếu API trả về cấu trúc data.data
+    if (response.data && response.data.data) {
+      // Nếu API trả về cấu trúc { data: [...roles] }
+      if (Array.isArray(response.data.data)) {
+        return response.data.data.map((role: any) => ({
           id: role.id.toString(),
           name: role.name,
           description: role.description,

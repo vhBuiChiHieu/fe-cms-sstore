@@ -47,6 +47,11 @@ const AccountsPage: React.FC = () => {
   const [openStatusDialog, setOpenStatusDialog] = useState<boolean>(false);
   const [openViewDialog, setOpenViewDialog] = useState<boolean>(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [editFormData, setEditFormData] = useState<{
+    status: string;
+    roles: string[];
+  }>({ status: '0', roles: [] });
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [accountProfile, setAccountProfile] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -209,14 +214,33 @@ const AccountsPage: React.FC = () => {
       const profile = await accountService.getAccountProfileById(account.id);
       if (profile && profile.roles) {
         // Cập nhật tài khoản với danh sách vai trò đầy đủ
+        const selectedRoles = profile.roles.map(role => ({
+          id: role.id.toString(),
+          name: role.name,
+          description: role.description
+        }));
+        
+        // Log để debug
+        console.log('Profile roles from API:', profile.roles);
+        console.log('Mapped selected roles:', selectedRoles);
+        
+        // Lấy danh sách role IDs
+        const roleIds = selectedRoles.map(role => role.id);
+        
+        // Cập nhật selected account
         setSelectedAccount({
           ...account,
-          selectedRoles: profile.roles.map(role => ({
-            id: role.id.toString(),
-            name: role.name,
-            description: role.description
-          }))
+          selectedRoles: selectedRoles
         });
+        
+        // Cập nhật form data
+        setEditFormData({
+          status: typeof account.status === 'string' ? account.status : account.status.toString(),
+          roles: roleIds
+        });
+        
+        // Log để debug
+        console.log('Initial editFormData.roles set to:', roleIds);
       }
     } catch (error) {
       setSnackbar({
@@ -259,17 +283,75 @@ const AccountsPage: React.FC = () => {
   const handleCloseEditDialog = () => {
     setOpenEditDialog(false);
     setSelectedAccount(null);
+    setEditFormData({ status: '0', roles: [] });
+    setSubmitting(false);
   };
 
   const handleAccountUpdated = () => {
     setOpenEditDialog(false);
     setSelectedAccount(null);
+    setEditFormData({ status: '0', roles: [] });
+    setSubmitting(false);
     fetchAccountsWithParams(0, rowsPerPage, searchTerm, statusFilter, roleFilter);
     setSnackbar({
       open: true,
       message: 'Cập nhật tài khoản thành công!',
       severity: 'success',
     });
+  };
+  
+  // Xử lý thay đổi trạng thái
+  const handleStatusChange = (event: SelectChangeEvent) => {
+    setEditFormData(prevData => ({
+      ...prevData,
+      status: event.target.value
+    }));
+  };
+  
+  // Xử lý thay đổi vai trò
+  const handleRoleChange = (event: SelectChangeEvent<string[]>) => {
+    // Nhận giá trị mới từ EditAccountDialog
+    const newRoleIds = Array.isArray(event.target.value) ? event.target.value : [event.target.value];
+    
+    // Cập nhật trong editFormData
+    setEditFormData(prevData => ({
+      ...prevData,
+      roles: newRoleIds
+    }));
+    
+    // Log để debug
+    console.log('Updated roles in AccountsPage:', newRoleIds);
+  };
+  
+  // Xử lý submit form chỉnh sửa
+  const handleSubmitEditForm = async () => {
+    if (!selectedAccount) return;
+    
+    setSubmitting(true);
+    
+    try {
+      // Chuẩn bị dữ liệu gửi đi theo format API yêu cầu
+      const updateData = {
+        status: parseInt(editFormData.status, 10),
+        roles: editFormData.roles.map(roleId => ({ id: parseInt(roleId, 10) }))
+      };
+      
+      // Gọi API cập nhật tài khoản
+      const success = await accountService.updateAccount(selectedAccount.id, updateData);
+      
+      if (success) {
+        handleAccountUpdated();
+      } else {
+        throw new Error('Cập nhật tài khoản không thành công');
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Không thể cập nhật tài khoản. Vui lòng thử lại sau.',
+        severity: 'error',
+      });
+      setSubmitting(false);
+    }
   };
 
   // Handle delete account dialog
@@ -474,17 +556,22 @@ const AccountsPage: React.FC = () => {
           account={{
             id: selectedAccount.id,
             email: selectedAccount.email,
-            status: typeof selectedAccount.status === 'string' ? parseInt(selectedAccount.status as string, 10) : selectedAccount.status,
-            selectedRoles: selectedAccount.selectedRoles || []
+            status: parseInt(editFormData.status, 10),
+            // Tạo danh sách selectedRoles dựa trên roles được chọn trong editFormData
+            selectedRoles: selectedAccount.selectedRoles ? 
+              // Lọc các roles đã được chọn trong editFormData.roles
+              selectedAccount.selectedRoles.filter(role => 
+                editFormData.roles.includes(role.id)
+              ) : []
           }}
           roles={roles}
           onAccountUpdated={handleAccountUpdated}
-          loading={false}
+          loading={loading}
           profileLoading={loadingProfile}
-          submitting={false}
-          onStatusChange={() => {}}
-          onRoleChange={() => {}}
-          onSubmit={() => {}}
+          submitting={submitting}
+          onStatusChange={handleStatusChange}
+          onRoleChange={handleRoleChange}
+          onSubmit={handleSubmitEditForm}
         />
       )}
 

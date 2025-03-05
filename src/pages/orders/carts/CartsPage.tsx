@@ -40,6 +40,8 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   Cake as CakeIcon,
+  Inventory2 as Inventory2Icon,
+  Paid as PaidIcon,
 } from '@mui/icons-material';
 import cartService, { Cart, CartItem, CartListParams } from '../../../services/cartService';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
@@ -381,7 +383,7 @@ const CartsPage: React.FC = () => {
                           Ngày sinh:
                         </Typography>
                         <Typography variant="body1" fontWeight="medium">
-                          {formatDate(selectedCart.account.dateOfBirth)}
+                          {formatDate(selectedCart.account.dateOfBirth, '-', false)}
                         </Typography>
                       </Stack>
                     </Grid>
@@ -476,28 +478,65 @@ const CartsPage: React.FC = () => {
                 </Table>
               </TableContainer>
 
-              <Card variant="outlined" sx={{ borderRadius: 1, bgcolor: 'primary.50' }}>
-                <CardContent sx={{ p: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="subtitle1">
-                      Tổng số sản phẩm: <Chip 
-                        size="small" 
-                        label={selectedCart.cartItems.length} 
-                        color="primary" 
-                        sx={{ ml: 1, fontWeight: 'bold' }}
-                      />
-                    </Typography>
-                    <Typography variant="subtitle1">
-                      Tổng giá trị: <Typography component="span" variant="h6" color="primary.main" fontWeight="bold">
-                        {formatCurrency(
-                          selectedCart.cartItems.reduce(
-                            (sum, item) => sum + item.quantity * item.productVariant.price,
-                            0
-                          )
-                        )}
-                      </Typography>
-                    </Typography>
-                  </Box>
+              <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' }}>
+                <CardContent sx={{ p: 0 }}>
+                  <Grid container>
+                    {/* Thông tin tổng số sản phẩm */}
+                    <Grid item xs={12} md={4} sx={{ p: 2, bgcolor: 'primary.50', borderRight: { xs: 'none', md: '1px dashed rgba(0, 0, 0, 0.1)' }, borderBottom: { xs: '1px dashed rgba(0, 0, 0, 0.1)', md: 'none' } }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <ShoppingCartIcon fontSize="small" sx={{ mr: 0.5 }} />
+                            SỐ LOẠI SẢN PHẨM
+                          </Box>
+                        </Typography>
+                        <Chip 
+                          size="medium" 
+                          label={selectedCart.cartItems.length} 
+                          color="primary" 
+                          sx={{ fontWeight: 'bold', fontSize: '1rem', minWidth: '60px', justifyContent: 'center' }}
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    {/* Thông tin tổng số lượng */}
+                    <Grid item xs={12} md={4} sx={{ p: 2, bgcolor: 'secondary.50', borderRight: { xs: 'none', md: '1px dashed rgba(0, 0, 0, 0.1)' }, borderBottom: { xs: '1px dashed rgba(0, 0, 0, 0.1)', md: 'none' } }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Inventory2Icon fontSize="small" sx={{ mr: 0.5 }} />
+                            TỔNG SỐ LƯỢNG
+                          </Box>
+                        </Typography>
+                        <Chip 
+                          size="medium" 
+                          label={selectedCart.cartItems.reduce((sum, item) => sum + item.quantity, 0)} 
+                          color="secondary" 
+                          sx={{ fontWeight: 'bold', fontSize: '1rem', minWidth: '60px', justifyContent: 'center' }}
+                        />
+                      </Box>
+                    </Grid>
+                    
+                    {/* Thông tin tổng giá trị */}
+                    <Grid item xs={12} md={4} sx={{ p: 2, bgcolor: 'success.50' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <PaidIcon fontSize="small" sx={{ mr: 0.5 }} />
+                            TỔNG GIÁ TRỊ
+                          </Box>
+                        </Typography>
+                        <Typography variant="h6" color="success.main" fontWeight="bold">
+                          {formatCurrency(
+                            selectedCart.cartItems.reduce(
+                              (sum, item) => sum + item.quantity * item.productVariant.price,
+                              0
+                            )
+                          )}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </CardContent>
               </Card>
             </Box>

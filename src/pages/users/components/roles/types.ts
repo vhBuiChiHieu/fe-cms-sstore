@@ -1,4 +1,5 @@
 import { Permission } from '../../../../services/permissionService';
+import { Role } from '../../../../services/roleService';
 
 // Interface cho props của dialog thêm vai trò
 export interface AddRoleDialogProps {
@@ -51,4 +52,13 @@ export interface SelectedPermissionsProps {
   selectedPermissions: Permission[];
   onTogglePermission: (permissionId: string | number) => void;
   onClearAll: () => void;
+}
+
+// Interface cho props của dialog chỉnh sửa vai trò
+export interface EditRoleDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onRoleUpdated?: () => void;
+  role: Role | null;
+  loading: boolean;
 }

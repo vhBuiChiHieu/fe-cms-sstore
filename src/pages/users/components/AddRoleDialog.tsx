@@ -262,7 +262,12 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
       }}>
         Thêm vai trò mới
       </DialogTitle>
-      <DialogContent sx={{ p: 0 }}>
+      <DialogContent sx={{ 
+        p: 0,
+        '&.MuiDialogContent-root': {
+          overflowY: 'auto' // Thay đổi thành auto để cho phép cuộn khi cần thiết
+        }
+      }}>
         <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Thông tin cơ bản */}
           <RoleForm 
@@ -298,11 +303,16 @@ const AddRoleDialog: React.FC<AddRoleDialogProps> = ({
               onSearch={handleSearchPermissions}
             />
             
-            <SelectedPermissions 
-              selectedPermissions={selectedPermissions}
-              onTogglePermission={handleTogglePermission}
-              onClearAll={handleClearAllPermissions}
-            />
+            <Box sx={{ 
+              height: '485px', // Cố định chiều cao giống với PermissionList
+              mt: 2
+            }}>
+              <SelectedPermissions 
+                selectedPermissions={selectedPermissions}
+                onTogglePermission={handleTogglePermission}
+                onClearAll={handleClearAllPermissions}
+              />
+            </Box>
           </Box>
         </Box>
       </DialogContent>

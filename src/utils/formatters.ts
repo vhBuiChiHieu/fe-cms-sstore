@@ -2,22 +2,28 @@
  * Định dạng ngày tháng từ chuỗi ISO sang định dạng ngày/tháng/năm
  * @param dateString Chuỗi ngày tháng dạng ISO hoặc định dạng khác
  * @param fallback Giá trị mặc định nếu dateString không hợp lệ
+ * @param showTime Có hiển thị giờ phút hay không
  * @returns Chuỗi ngày tháng đã định dạng
  */
-export const formatDate = (dateString?: string, fallback = '-'): string => {
+export const formatDate = (dateString?: string, fallback = '-', showTime = false): string => {
   if (!dateString) return fallback;
   
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return fallback;
     
-    return new Intl.DateTimeFormat('vi-VN', {
+    const options: Intl.DateTimeFormatOptions = {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+      year: 'numeric'
+    };
+    
+    if (showTime) {
+      options.hour = '2-digit';
+      options.minute = '2-digit';
+    }
+    
+    return new Intl.DateTimeFormat('vi-VN', options).format(date);
   } catch (error) {
     console.error('Error formatting date:', error);
     return fallback;

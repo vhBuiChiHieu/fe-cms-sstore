@@ -76,7 +76,7 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ account }) => {
                 Ngày sinh:
               </Typography>
               <Typography variant="body1" fontWeight="medium">
-                {formatDate(account.dateOfBirth, '-')}
+                {formatDate(account.dateOfBirth, '-', false)}
               </Typography>
             </Stack>
           </Grid>
