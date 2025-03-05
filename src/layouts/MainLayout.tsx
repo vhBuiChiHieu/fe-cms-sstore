@@ -143,9 +143,12 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
       try {
         if (isMounted) {
           setLoading(true);
-          console.log('Fetching profile...');
+          console.log('===============================================');
+          console.log('FETCHING PROFILE...');
           const data = await accountService.getProfile();
-          console.log('Profile data:', data);
+          console.log('PROFILE DATA:', JSON.stringify(data, null, 2));
+          console.log('AVATAR VALUE:', data?.avatar);
+          console.log('===============================================');
           
           if (isMounted && data) {
             // Cập nhật thông tin vào context và lưu vào localStorage
@@ -154,11 +157,19 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             // Lưu vào state của component để dùng
             setUserProfile(data);
             
-            // Nếu có avatar, tải ảnh
-            if (data.avatar) {
+            // Ghi log rõ trước khi kiểm tra avatar
+            console.log('============== CHECKING AVATAR =============');
+            console.log('data.avatar type:', typeof data.avatar);
+            console.log('data.avatar value:', data.avatar);
+            
+            // Nếu có avatar hoặc dùng force=true để luôn gọi API
+            const force = true; // Set false nếu chỉ muốn gọi khi có avatar
+            if (data.avatar || force) {
+              // Sử dụng avatar thật hoặc mặc định nếu test
+              const avatarName = data.avatar || 'avatar.jpeg';
               try {
                 // Cấu hình URL và các tham số gọi API
-                const avatarEndpoint = `/api/file/${data.avatar}`;
+                const avatarEndpoint = `/api/file/${avatarName}`;
                 console.log('1. Đang tải avatar từ:', BASE_URL + avatarEndpoint);
                 
                 // Sử dụng axios trực tiếp với token rõ ràng để tránh vấn đề với axiosInstance
