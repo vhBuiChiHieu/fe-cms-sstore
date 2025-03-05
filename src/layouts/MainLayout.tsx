@@ -118,8 +118,39 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const [initialized, setInitialized] = useState(false);
 
   // Fetch profile khi component mount - chỉ chạy một lần khi đã xác thực
+  // Hàm riêng để tải avatar, có thể gọi bất cứ lúc nào
+  const loadAvatar = async () => {
+    console.log('======= THỬ TẢI AVATAR RIÊNG =======');
+    // Sử dụng token test đã biết có hoạt động
+    const token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTc0MDk2OTg0OSwiZXhwIjoxNzQ5NjA5ODQ5fQ.yS8s_o8cZdBTM8Jiq6FzFJ8COdsq2PVyoSuBb9JcpsfnlpIxXYLRnivGvqIgywT_";
+    const avatarName = 'avatar.jpeg';
+    
+    try {
+      console.log('1. Tải avatar:', `${BASE_URL}/api/file/${avatarName}`);
+      const response = await fetch(`${BASE_URL}/api/file/${avatarName}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      console.log('2. Trạng thái response:', response.status);
+      if (response.ok) {
+        const blob = await response.blob();
+        console.log('3. Đã tải xong, kích thước:', blob.size);
+        const url = URL.createObjectURL(blob);
+        setAvatarUrl(url);
+      }
+    } catch (e) {
+      console.error('Lỗi khi tải avatar:', e);
+    }
+  };
+  
+  // Effect chính để tải profile
   useEffect(() => {
     console.log('useEffect fetchProfile - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
+    
+    // Thử tải avatar độc lập với profile
+    loadAvatar();
     
     // Chỉ gọi API khi đã xác thực
     if (!isAuthenticated) {
@@ -167,6 +198,8 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             if (data.avatar || force) {
               // Sử dụng avatar thật hoặc mặc định nếu test
               const avatarName = data.avatar || 'avatar.jpeg';
+              console.log('========= BẮT ĐẦU LOGIC TẢI AVATAR =========');
+              
               try {
                 // Cấu hình URL và các tham số gọi API
                 const avatarEndpoint = `/api/file/${avatarName}`;
@@ -195,12 +228,29 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
                   token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTc0MDk2OTg0OSwiZXhwIjoxNzQ5NjA5ODQ5fQ.yS8s_o8cZdBTM8Jiq6FzFJ8COdsq2PVyoSuBb9JcpsfnlpIxXYLRnivGvqIgywT_";
                 }
                 
+                // In ra URL và token
+                console.log('2f. Full URL:', `${BASE_URL}${avatarEndpoint}`);
+                console.log('2g. Authorization:', `Bearer ${token.substring(0, 15)}...`);
+                
+                // Bước quan trọng: gọi trực tiếp fetch API thay vì dùng axios
+                console.log('3. Bắt đầu gọi API...');
+                
+                // Cố gỏi bằng cả hai cách: axios và fetch
+                console.log('3a. Gọi bằng axios...');
                 const response = await axios.get(`${BASE_URL}${avatarEndpoint}`, {
                   headers: {
                     Authorization: `Bearer ${token}`
                   },
                   responseType: 'blob'
                 });
+                
+                console.log('3b. Cũng thử gọi bằng fetch...');
+                fetch(`${BASE_URL}${avatarEndpoint}`, {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }).then(r => console.log('Fetch response:', r.status))
+                  .catch(e => console.log('Fetch error:', e));
                 
                 console.log('3. API trả về thành công');
                 console.log('4. Response type:', response.data.type);
