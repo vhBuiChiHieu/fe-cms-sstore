@@ -121,13 +121,20 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   useEffect(() => {
     console.log('useEffect fetchProfile - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
     
-    // Chỉ gọi API khi đã xác thực và chưa khởi tạo
-    if (!isAuthenticated || initialized) {
+    // Chỉ gọi API khi đã xác thực
+    if (!isAuthenticated) {
+      return;
+    }
+    
+    // Tránh gọi nhiều lần
+    if (initialized) {
+      console.log('Profile đã được tải trước đó');
       return;
     }
     
     // Đánh dấu đã khởi tạo
     setInitialized(true);
+    console.log('Bắt đầu tải profile...');
     
     // Sử dụng biến cờ để đảm bảo chỉ gọi API một lần
     let isMounted = true;
@@ -150,22 +157,36 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
             // Nếu có avatar, tải ảnh
             if (data.avatar) {
               try {
-                const avatarUrl = `${BASE_URL}/api/file/${data.avatar}`;
-                console.log('Đang tải avatar từ: ', avatarUrl);
+                // Cấu hình URL và các tham số gọi API
+                const avatarEndpoint = `/api/file/${data.avatar}`;
+                console.log('1. Đang tải avatar từ:', BASE_URL + avatarEndpoint);
                 
-                // Sử dụng axiosInstance thay vì axios trực tiếp
-                // axiosInstance sẽ tự động thêm token vào header
-                const response = await axiosInstance.get(`/api/file/${data.avatar}`, {
+                // Sử dụng axios trực tiếp với token rõ ràng để tránh vấn đề với axiosInstance
+                const token = localStorage.getItem('authState') 
+                  ? JSON.parse(localStorage.getItem('authState') || '{}').token 
+                  : null;
+                
+                console.log('2. Token có sẵn:', !!token);
+                
+                if (!token) {
+                  throw new Error('Không tìm thấy token xác thực');
+                }
+                
+                const response = await axios.get(`${BASE_URL}${avatarEndpoint}`, {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  },
                   responseType: 'blob'
                 });
                 
-                console.log('Response type:', response.data.type);
-                console.log('Response size:', response.data.size, 'bytes');
+                console.log('3. API trả về thành công');
+                console.log('4. Response type:', response.data.type);
+                console.log('5. Response size:', response.data.size, 'bytes');
                 
                 // Tạo URL từ blob
                 if (isMounted) {
                   const url = URL.createObjectURL(response.data);
-                  console.log('Avatar URL created:', url);
+                  console.log('6. Avatar URL created:', url);
                   setAvatarUrl(url);
                 }
               } catch (error) {
@@ -178,7 +199,10 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
               }
             } else {
               // Sử dụng avatar mặc định nếu không có avatar
-              setAvatarUrl(`https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random`);
+              if (isMounted) {
+                console.log('Không có avatar, sử dụng mặc định');
+                setAvatarUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName || '')}+${encodeURIComponent(data.lastName || '')}&background=random`);
+              }
             }
           }
         }
