@@ -58,7 +58,6 @@ import cartService from '../services/cartService';
 import permissionService, { Permission } from '../services/permissionService';
 import logger from '../utils/logger';
 import { BASE_URL } from '../utils/config';
-import axios from 'axios';
 import axiosInstance from '../utils/axiosInstance';
 import { getToken } from '../utils/authUtils';
 
