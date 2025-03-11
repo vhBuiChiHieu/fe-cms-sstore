@@ -138,7 +138,7 @@ class OrderService {
         customerEmail: orderData.customerEmail || 'Không có thông tin',
         customerPhone: orderData.customerPhone || 'Không có thông tin',
         shippingAddress: orderData.shippingAddress || 'Không có thông tin',
-        orderItems: orderData.orderItems || [],
+        orderItems: orderData.items || [],
         paymentMethod: orderData.paymentMethod || 'Không có thông tin',
         paymentStatus: orderData.paymentStatus || 'Chưa thanh toán',
         note: orderData.note

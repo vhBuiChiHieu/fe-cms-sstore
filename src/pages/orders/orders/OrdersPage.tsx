@@ -16,10 +16,11 @@ import {
   Select,
   MenuItem,
   Button,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import OrderSearchBar from './components/OrderSearchBar';
 import OrdersTable from './components/OrdersTable';
+import OrderDetailDialog from './components/OrderDetailDialog';
 import orderService, { Order, OrderStatus } from '../../../services/orderService';
 import logger from '../../../utils/logger';
 
@@ -41,11 +42,13 @@ const OrdersPage: React.FC = () => {
   // State cho danh sách trạng thái
   const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([]);
   
-  // State cho đơn hàng đang chọn và dialog chỉnh sửa trạng thái
+  // State cho dialog chi tiết và chỉnh sửa trạng thái đơn hàng
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderDetailDialogOpen, setOrderDetailDialogOpen] = useState<boolean>(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState<boolean>(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
+  const [loadingOrderDetail, setLoadingOrderDetail] = useState<boolean>(false);
   
   // State cho thông báo
   const [snackbar, setSnackbar] = useState<{
@@ -148,13 +151,22 @@ const OrdersPage: React.FC = () => {
   };
 
   // Xử lý xem chi tiết đơn hàng
-  const handleViewOrder = (order: Order) => {
-    // Hiện tại chỉ hiển thị thông báo vì chưa có API chi tiết đơn hàng
-    setSnackbar({
-      open: true,
-      message: `Xem chi tiết đơn hàng #${order.orderNumber || order.id}`,
-      severity: 'info',
-    });
+  const handleViewOrder = async (order: Order) => {
+    setLoadingOrderDetail(true);
+    try {
+      const orderDetail = await orderService.getOrderDetail(order.id.toString());
+      setSelectedOrder(orderDetail);
+      setOrderDetailDialogOpen(true);
+    } catch (err) {
+      logger.error('Lỗi khi tải chi tiết đơn hàng:', err);
+      setSnackbar({
+        open: true,
+        message: 'Không thể tải chi tiết đơn hàng. Vui lòng thử lại sau.',
+        severity: 'error',
+      });
+    } finally {
+      setLoadingOrderDetail(false);
+    }
   };
 
   // Xử lý mở dialog cập nhật trạng thái đơn hàng
@@ -162,6 +174,12 @@ const OrdersPage: React.FC = () => {
     setSelectedOrder(order);
     setSelectedStatus(order.status);
     setStatusDialogOpen(true);
+  };
+
+  // Xử lý đóng dialog chi tiết đơn hàng
+  const handleCloseOrderDetail = () => {
+    setOrderDetailDialogOpen(false);
+    setSelectedOrder(null);
   };
 
   // Xử lý đóng dialog cập nhật trạng thái
@@ -255,6 +273,13 @@ const OrdersPage: React.FC = () => {
         />
       </Paper>
       
+      {/* Dialog xem chi tiết đơn hàng */}
+      <OrderDetailDialog
+        open={orderDetailDialogOpen}
+        onClose={handleCloseOrderDetail}
+        order={selectedOrder}
+      />
+
       {/* Dialog cập nhật trạng thái đơn hàng */}
       <Dialog open={statusDialogOpen} onClose={handleCloseStatusDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Cập nhật trạng thái đơn hàng</DialogTitle>
