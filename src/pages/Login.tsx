@@ -25,7 +25,6 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logger from '../utils/logger';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -40,16 +39,12 @@ const Login: React.FC = () => {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang Dashboard
   useEffect(() => {
-    logger.debug('Login - isAuthenticated:', isAuthenticated);
     if (isAuthenticated) {
-      // Sử dụng replace thay vì push để tránh thêm vào history stack
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
-  // Cập nhật lỗi từ AuthContext
   useEffect(() => {
     if (authError) {
       setLoginError(authError);
@@ -79,7 +74,6 @@ const Login: React.FC = () => {
   const validateForm = (): boolean => {
     let isValid = true;
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
       setEmailError('Vui lòng nhập email');
@@ -89,7 +83,6 @@ const Login: React.FC = () => {
       isValid = false;
     }
 
-    // Validate password
     if (!password) {
       setPasswordError('Vui lòng nhập mật khẩu');
       isValid = false;
@@ -106,18 +99,13 @@ const Login: React.FC = () => {
     
     if (validateForm()) {
       try {
-        logger.debug('Đang đăng nhập với:', email, password);
         const success = await login(email, password, rememberMe);
-        logger.debug('Kết quả đăng nhập:', success);
         
         if (success) {
           setSnackbarMessage('Đăng nhập thành công!');
           setShowSnackbar(true);
-          // Không cần chuyển hướng ở đây, useEffect sẽ xử lý
-          // navigate('/dashboard');
         }
       } catch (error) {
-        logger.error('Lỗi khi đăng nhập:', error);
         setLoginError('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại sau.');
       }
     }
@@ -134,13 +122,12 @@ const Login: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#e3f2fd',
         py: 4
       }}
     >
       <Container maxWidth="md">
         <Grid container component={Paper} elevation={6} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          {/* Phần hình ảnh bên trái */}
           <Grid
             item
             xs={false}
@@ -194,7 +181,6 @@ const Login: React.FC = () => {
             </Box>
           </Grid>
 
-          {/* Phần form đăng nhập bên phải */}
           <Grid item xs={12} sm={7} md={7}>
             <Box
               sx={{
@@ -315,7 +301,11 @@ const Login: React.FC = () => {
                     py: 1.5,
                     borderRadius: 2,
                     textTransform: 'none',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    backgroundColor: '#1976d2',
+                    '&:hover': {
+                      backgroundColor: '#115293',
+                    }
                   }}
                 >
                   {isLoading ? (
