@@ -4,6 +4,7 @@
 
 // Sử dụng biến môi trường từ file .env
 export const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+console.log('CONFIG - BASE_URL:', BASE_URL);
 
 export const APP_CONFIG = {
   apiUrl: BASE_URL,

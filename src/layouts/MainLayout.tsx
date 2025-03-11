@@ -1,54 +1,7 @@
-//cSpell:disable
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  AppBar, 
-  Box, 
-  CssBaseline, 
-  Divider, 
-  Drawer, 
-  IconButton, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  Toolbar, 
-  Typography,
-  Avatar,
-  Menu,
-  MenuItem,
-  Badge,
-  Tooltip,
-  Collapse,
-  CircularProgress
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
-  Inventory as InventoryIcon,
-  Assessment as AssessmentIcon,
-  Settings as SettingsIcon,
-  Notifications as NotificationsIcon,
-  Logout as LogoutIcon,
-  Person as PersonIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  ExpandLess as ExpandLessIcon,
-  ExpandMore as ExpandMoreIcon,
-  AccountBox as AccountBoxIcon,
-  ContactPage as ContactPageIcon,
-  Category as CategoryIcon,
-  Layers as LayersIcon,
-  Business as BusinessIcon,
-  ViewList as ViewListIcon,
-  Receipt as ReceiptIcon,
-  AdminPanelSettings as AdminPanelSettingsIcon,
-  Security as SecurityIcon,
-  Home as HomeIcon,
-  VpnKey as VpnKeyIcon
-} from '@mui/icons-material';
+import { AppBar, Box, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Avatar, Menu, MenuItem, Badge, Tooltip, Collapse, CircularProgress } from '@mui/material';
+import { Menu as MenuIcon, Dashboard as DashboardIcon, People as PeopleIcon, Inventory as InventoryIcon, Assessment as AssessmentIcon, Settings as SettingsIcon, Notifications as NotificationsIcon, Logout as LogoutIcon, Person as PersonIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, ExpandLess as ExpandLessIcon, ExpandMore as ExpandMoreIcon, AccountBox as AccountBoxIcon, ContactPage as ContactPageIcon, Category as CategoryIcon, Layers as LayersIcon, Business as BusinessIcon, ViewList as ViewListIcon, Receipt as ReceiptIcon, AdminPanelSettings as AdminPanelSettingsIcon, Security as SecurityIcon, Home as HomeIcon, VpnKey as VpnKeyIcon } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileDialog from '../components/ProfileDialog';
@@ -95,14 +48,6 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  
-  // Không cần kiểm tra trạng thái xác thực ở đây vì ProtectedRoute đã làm việc này
-  // useEffect(() => {
-  //   if (!isAuthenticated) {
-  //     navigate('/login');
-  //   }
-  // }, [isAuthenticated, navigate]);
-
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -113,30 +58,27 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
   const [cartCount, setCartCount] = useState<number>(0);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loadingPermissions, setLoadingPermissions] = useState<boolean>(false);
-  
-  // Flag để kiểm soát việc gọi API
   const [initialized, setInitialized] = useState(false);
-
-  // Fetch profile khi component mount - chỉ chạy một lần khi đã xác thực
-  // Hàm riêng để tải avatar, chỉ gọi một lần
   const loadAvatar = async () => {
-    // Kiểm tra đã có avatar URL chưa
     if (avatarUrl) {
-      console.log('Avatar đã được tải trước đó:', avatarUrl.substring(0, 30) + '...');
       return;
     }
-
-    console.log('======= TẢI AVATAR =======');
-    // Sử dụng token test đã biết có hoạt động
-    const token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTc0MDk2OTg0OSwiZXhwIjoxNzQ5NjA5ODQ5fQ.yS8s_o8cZdBTM8Jiq6FzFJ8COdsq2PVyoSuBb9JcpsfnlpIxXYLRnivGvqIgywT_";
-    const avatarName = 'avatar.jpeg';
+    
+    const token = getToken();
+    if (!token) {
+      logout();
+      return;
+    }
+    
+    const userProfile = await accountService.getProfile().catch(() => null);
+    if (!userProfile) {
+      return;
+    }
+    
+    const avatarName = userProfile.avatar || 'default-avatar.png';
     
     try {
-      // Cấu hình URL và các tham số
       const imgUrl = `${BASE_URL}/api/file/${avatarName}`;
-      console.log('1. Tải avatar từ:', imgUrl);
-      
-      // Sử dụng XMLHttpRequest để tránh vấn đề CORS
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', imgUrl, true);
@@ -145,130 +87,79 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
         
         xhr.onload = function() {
           if (this.status === 200) {
-            console.log('2. Avatar tải thành công, kích thước:', this.response.size);
             const url = URL.createObjectURL(this.response);
             setAvatarUrl(url);
-            console.log('3. Đã tạo URL của avatar:', url.substring(0, 30) + '...');
             resolve(url);
           } else {
-            console.error('Lỗi khi tải avatar, status:', this.status);
             reject(new Error(`HTTP error ${this.status}`));
           }
         };
         
         xhr.onerror = function(e) {
-          console.error('Lỗi kết nối khi tải avatar:', e);
           reject(e);
         };
         
         xhr.send();
       });
     } catch (e) {
-      console.error('Lỗi khi tải avatar:', e);
+      logger.error('Lỗi khi tải avatar:', e);
     }
   };
   
-  // Effect riêng để chỉ tải avatar một lần
   useEffect(() => {
-    // Chỉ gọi một lần duy nhất, không phụ thuộc vào bất kỳ giá trị nào
     const loadAvatarOnce = async () => {
-      console.log('useEffect gọi loadAvatar một lần duy nhất');
       await loadAvatar();
     };
     
     loadAvatarOnce();
-    // Mảng dependencies rỗng để chỉ gọi một lần duy nhất
   }, []);
   
-  // Effect chính để tải profile
   useEffect(() => {
-    console.log('useEffect fetchProfile - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
-    
-    // Chỉ gọi API khi đã xác thực
     if (!isAuthenticated) {
       return;
     }
     
-    // Tránh gọi nhiều lần
     if (initialized) {
-      console.log('Profile đã được tải trước đó');
       return;
     }
     
-    // Đánh dấu đã khởi tạo
     setInitialized(true);
-    console.log('Bắt đầu tải profile...');
     
-    // Sử dụng biến cờ để đảm bảo chỉ gọi API một lần
     let isMounted = true;
     
     const fetchProfile = async () => {
       try {
         if (isMounted) {
           setLoading(true);
-          console.log('===============================================');
-          console.log('FETCHING PROFILE...');
           const data = await accountService.getProfile();
-          console.log('PROFILE DATA:', JSON.stringify(data, null, 2));
-          console.log('AVATAR VALUE:', data?.avatar);
-          console.log('===============================================');
           
           if (isMounted && data) {
-            // Cập nhật thông tin vào context và lưu vào localStorage
+            
             updateUserFromProfile(data);
             
-            // Lưu vào state của component để dùng
             setUserProfile(data);
-            
-            // Ghi log rõ trước khi kiểm tra avatar
-            console.log('============== CHECKING AVATAR =============');
-            console.log('data.avatar type:', typeof data.avatar);
-            console.log('data.avatar value:', data.avatar);
-            
-            // Nếu có avatar hoặc dùng force=true để luôn gọi API
-            const force = true; // Set false nếu chỉ muốn gọi khi có avatar
+            const force = true;
             if (data.avatar || force) {
-              // Sử dụng avatar thật hoặc mặc định nếu test
               const avatarName = data.avatar || 'avatar.jpeg';
-              console.log('========= BẮT ĐẦU LOGIC TẢI AVATAR =========');
               
               try {
-                // Cấu hình URL và các tham số gọi API
                 const avatarEndpoint = `/api/file/${avatarName}`;
-                console.log('1. Đang tải avatar từ:', BASE_URL + avatarEndpoint);
                 
-                // Sử dụng axios trực tiếp với token rõ ràng để tránh vấn đề với axiosInstance
                 let token = null;
                 try {
                   const authStateString = localStorage.getItem('authState');
-                  console.log('2a. authStateString:', authStateString);
                   
                   if (authStateString) {
                     const authState = JSON.parse(authStateString);
-                    console.log('2b. authState:', authState);
                     token = authState.token;
                   }
                 } catch (e) {
-                  console.error('2c. Lỗi khi phân tích authState:', e);
                 }
                 
-                console.log('2d. Token có sẵn:', !!token);
-                
-                // Token cụ thể cho test
                 if (!token) {
-                  console.log('2e. Sử dụng token test');
-                  token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbkBhZG1pbi5jb20iLCJpZCI6MSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTc0MDk2OTg0OSwiZXhwIjoxNzQ5NjA5ODQ5fQ.yS8s_o8cZdBTM8Jiq6FzFJ8COdsq2PVyoSuBb9JcpsfnlpIxXYLRnivGvqIgywT_";
+                  logout();
+                  return;
                 }
-                
-                // In ra URL và token
-                console.log('2f. Full URL:', `${BASE_URL}${avatarEndpoint}`);
-                console.log('2g. Authorization:', `Bearer ${token.substring(0, 15)}...`);
-                
-                // Bước quan trọng: gọi trực tiếp fetch API thay vì dùng axios
-                console.log('3. Bắt đầu gọi API...');
-                
-                // Cố gỏi bằng cả hai cách: axios và fetch
-                console.log('3a. Gọi bằng axios...');
                 const response = await axios.get(`${BASE_URL}${avatarEndpoint}`, {
                   headers: {
                     Authorization: `Bearer ${token}`
@@ -276,36 +167,17 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
                   responseType: 'blob'
                 });
                 
-                console.log('3b. Cũng thử gọi bằng fetch...');
-                fetch(`${BASE_URL}${avatarEndpoint}`, {
-                  headers: {
-                    Authorization: `Bearer ${token}`
-                  }
-                }).then(r => console.log('Fetch response:', r.status))
-                  .catch(e => console.log('Fetch error:', e));
-                
-                console.log('3. API trả về thành công');
-                console.log('4. Response type:', response.data.type);
-                console.log('5. Response size:', response.data.size, 'bytes');
-                
-                // Tạo URL từ blob
                 if (isMounted) {
                   const url = URL.createObjectURL(response.data);
-                  console.log('6. Avatar URL created:', url);
                   setAvatarUrl(url);
                 }
               } catch (error) {
-                console.error('Lỗi khi tải avatar:', error);
-                // Sử dụng avatar mặc định nếu không tải được avatar từ API
                 if (isMounted) {
-                  console.log('Sử dụng avatar mặc định cho:', data.firstName, data.lastName);
                   setAvatarUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName || '')}+${encodeURIComponent(data.lastName || '')}&background=random`);
                 }
               }
             } else {
-              // Sử dụng avatar mặc định nếu không có avatar
               if (isMounted) {
-                console.log('Không có avatar, sử dụng mặc định');
                 setAvatarUrl(`https://ui-avatars.com/api/?name=${encodeURIComponent(data.firstName || '')}+${encodeURIComponent(data.lastName || '')}&background=random`);
               }
             }
@@ -315,7 +187,6 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
         if (isMounted) {
           logger.error('Lỗi khi tải thông tin profile:', err);
           
-          // Sử dụng dữ liệu mặc định nếu không tải được profile
           const mockUserProfile = {
             id: 1,
             email: 'admin@admin.com',
@@ -342,99 +213,43 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
     
     fetchProfile();
     
-    // Cleanup URL và ngăn chặn các API calls khi component unmount
     return () => {
       isMounted = false;
       if (avatarUrl) {
         URL.revokeObjectURL(avatarUrl);
       }
     };
-  }, [isAuthenticated, initialized, updateUserFromProfile]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
+  }, [isAuthenticated, initialized, updateUserFromProfile]);
 
-  // Lấy số lượng sản phẩm trong giỏ hàng - chỉ chạy một lần khi đã xác thực
   useEffect(() => {
-    console.log('useEffect fetchCartCount - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
-    
-    // Tạm thời không gọi API giỏ hàng để tránh vấn đề
-    return;
-    
-    // Chỉ gọi API khi đã xác thực và đã khởi tạo
-    if (!isAuthenticated || !initialized) {
-      return;
-    }
-    
-    let isMounted = true;
-    
-    const fetchCartCount = async () => {
-      try {
-        if (isMounted) {
-          console.log('Fetching cart count...');
+    if (isAuthenticated && initialized) {
+      const fetchCartCount = async () => {
+        try {
           const result = await cartService.getCarts({ pageIndex: 1, pageSize: 1 });
-          console.log('Cart count result:', result);
           setCartCount(result.totalCount);
-        }
-      } catch (error) {
-        if (isMounted) {
-          console.error('Lỗi khi tải số lượng giỏ hàng:', error);
+        } catch (error) {
           logger.error('Lỗi khi tải số lượng giỏ hàng:', error);
         }
-      }
-    };
+      };
 
-    fetchCartCount();
-    
-    // Cleanup function để tránh memory leak và gọi API khi component unmount
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated, initialized]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
-
-
-
-  // Lấy danh sách quyền hạn - chỉ chạy một lần khi đã xác thực
-  useEffect(() => {
-    console.log('useEffect fetchPermissions - isAuthenticated:', isAuthenticated, 'initialized:', initialized);
-    
-    // Tạm thời không gọi API quyền hạn để tránh vấn đề
-    return;
-    
-    // Chỉ gọi API khi đã xác thực và đã khởi tạo
-    if (!isAuthenticated || !initialized) {
-      return;
+      fetchCartCount();
     }
-    
-    let isMounted = true;
-    
-    const fetchPermissions = async () => {
-      try {
-        if (isMounted) {
-          console.log('Fetching permissions...');
-          setLoadingPermissions(true);
+  }, [isAuthenticated, initialized]);
+
+  useEffect(() => {
+    if (isAuthenticated && initialized) {
+      const fetchPermissions = async () => {
+        try {
           const result = await permissionService.getPermissions({ pageIndex: 1, pageSize: 100 });
-          console.log('Permissions result:', result);
-          if (isMounted) {
-            setPermissions(result.permissions);
-          }
-        }
-      } catch (error) {
-        if (isMounted) {
-          console.error('Lỗi khi tải danh sách quyền hạn:', error);
+          setPermissions(result.permissions);
+        } catch (error) {
           logger.error('Lỗi khi tải danh sách quyền hạn:', error);
         }
-      } finally {
-        if (isMounted) {
-          setLoadingPermissions(false);
-        }
-      }
-    };
+      };
 
-    fetchPermissions();
-    
-    // Cleanup function để tránh memory leak và gọi API khi component unmount
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated, initialized]); // Phụ thuộc vào trạng thái xác thực và trạng thái đã khởi tạo
+      fetchPermissions();
+    }
+  }, [isAuthenticated, initialized]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -515,7 +330,7 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 
-  // Xác định tiêu đề trang dựa trên đường dẫn hiện tại
+
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === '/') return 'Dashboard';
@@ -644,7 +459,7 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
                         </ListItemButton>
                       </ListItem>
                       
-                      {/* Hiển thị danh sách quyền hạn động */}
+
                       {'dynamicSubItems' in subItem && subItem.dynamicSubItems && (
                         <Collapse in={openSubMenu === subItem.text} timeout="auto" unmountOnExit>
                           <List component="div" disablePadding>
@@ -904,7 +719,6 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
           flexShrink: { sm: 0 },
           transition: 'width 0.2s'
         }}
-        aria-label="mailbox folders"
       >
         <Drawer
           container={container}
@@ -912,7 +726,7 @@ const MainLayout: React.FC<MainLayoutProps> = (props) => {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },

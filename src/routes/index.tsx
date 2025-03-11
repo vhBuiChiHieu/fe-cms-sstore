@@ -12,6 +12,7 @@ import PermissionsPage from '../pages/users/PermissionsPage';
 import logger from '../utils/logger';
 import CartsPage from '../pages/orders/carts/CartsPage';
 import ProductTypesPage from '../pages/products/types/ProductTypesPage';
+import OrdersPage from '../pages/orders/orders/OrdersPage';
 
 const AppRoutes: React.FC = () => {
   logger.debug('Rendering AppRoutes');
@@ -37,9 +38,11 @@ const AppRoutes: React.FC = () => {
           </Route>
           
           <Route path="orders">
-            <Route index element={<div>Trang Đơn hàng</div>} />
+            <Route index element={<Navigate to="/orders/orders" replace />} />
             <Route path="carts" element={<CartsPage />} />
-            <Route path="orders" element={<div>Trang Đơn hàng</div>} />
+            <Route path="orders" element={<React.Suspense fallback={<div>Đang tải...</div>}>
+              <OrdersPage />
+            </React.Suspense>} />
           </Route>
           
           {/* Routes người dùng */}
